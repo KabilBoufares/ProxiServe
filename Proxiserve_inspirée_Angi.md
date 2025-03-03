@@ -216,18 +216,4 @@ public class Booking {
   - Profils d'entreprises avec gestion d'équipe.
 
 ---
-src/
-├── main/
-│   ├── java/
-│   │   └── com/proxiserve/
-│   │       ├── config/          # Configuration (Security, MongoDB, etc.)
-│   │       ├── controller/      # Contrôleurs REST
-│   │       ├── model/           # Entités MongoDB
-│   │       ├── repository/      # Repositories Spring Data
-│   │       ├── service/         # Logique métier
-│   │       ├── security/        # Configuration JWT et Spring Security
-│   │       ├── exception/       # Gestion des erreurs
-│   │       └── ProxiserveApplication.java
-│   └── resources/
-│       ├── application.properties
-│       └── static/              # Éventuels fichiers statiques
+![image](https://github.com/user-attachments/assets/98111db7-e056-4092-959c-610ba2476f4d)
