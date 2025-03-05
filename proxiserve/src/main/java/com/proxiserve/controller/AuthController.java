@@ -128,6 +128,17 @@ public class AuthController {
         }
     }
 
+    //endpoint pour vérifier un token
+   @GetMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
+        token = token.replace("Bearer ", ""); // Supprime "Bearer " du token
+        boolean isValid = jwtTokenProvider.validateToken(token);
+        return ResponseEntity.ok(Map.of("valid", isValid));
+    }
+
+    
+
+
     //  DTOs pour valider les entrées (Bonne pratique)
     public static class SignupRequest {
         @Email(message = "Invalid email format")

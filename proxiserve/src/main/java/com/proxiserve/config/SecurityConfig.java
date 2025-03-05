@@ -32,7 +32,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // JWT is stateless
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/signup", "/api/auth/login").permitAll()  // Public routes
-                .requestMatchers("/ping", "/test-db", "/api/artisans/**").permitAll()  // Allow artisan APIs
+                .requestMatchers("/ping", "/test-db", "/api/artisans/**,/api/auth/validate-token").permitAll()  // Allow artisan APIs
                 .anyRequest().authenticated()  // Secure all other routes
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService), UsernamePasswordAuthenticationFilter.class);  // Add JWT filter
