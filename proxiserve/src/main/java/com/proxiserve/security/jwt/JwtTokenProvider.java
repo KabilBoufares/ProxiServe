@@ -3,28 +3,28 @@ package com.proxiserve.security.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
+import java.util.Base64;
 
 @Component
 public class JwtTokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
-
     private final SecretKey signingKey;
     private final long jwtExpirationMs;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret,
                             @Value("${jwt.expiration}") long jwtExpirationMs) {
-        this.signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        //byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);  // Décoder la clé en Base64
+        //this.signingKey = Keys.hmacShaKeyFor(keyBytes);  // Clé sécurisée
+        this.signingKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret));
         this.jwtExpirationMs = jwtExpirationMs;
     }
 

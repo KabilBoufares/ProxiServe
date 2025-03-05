@@ -16,7 +16,7 @@ public class TestDataController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ Injection via constructeur (Bonne pratique)
+    //  Injection via constructeur (Bonne pratique)
     public TestDataController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -26,16 +26,16 @@ public class TestDataController {
     public ResponseEntity<String> testDB() {
         String testEmail = "test1@hebil123456.com";
 
-        // ✅ Vérification si l'utilisateur existe déjà
+        //  Vérification si l'utilisateur existe déjà
         Optional<User> existingUser = userRepository.findByEmail(testEmail);
         if (existingUser.isPresent()) {
             return ResponseEntity.badRequest().body("User already exists in MongoDB!");
         }
 
-        // ✅ Création de l'utilisateur avec mot de passe hashé
+        //  Création de l'utilisateur avec mot de passe hashé
         User user = new User();
         user.setEmail(testEmail);
-        user.setPassword(passwordEncoder.encode("123456"));  // ✅ Mot de passe sécurisé
+        user.setPassword(passwordEncoder.encode("123456"));  //  Mot de passe sécurisé
         user.setRole("CLIENT");
 
         userRepository.save(user);

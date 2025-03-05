@@ -38,15 +38,24 @@ public class User implements UserDetails {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // ✅ Méthode pour définir un mot de passe sécurisé via le service
+    //  Méthode pour définir un mot de passe sécurisé via le service
     public void setEncodedPassword(String encodedPassword) {
         this.password = encodedPassword;
     }
 
-    @Override
+    /*@Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority(role));
+    }*/
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (role == null || role.isEmpty()) {
+            throw new IllegalArgumentException("A granted authority textual representation is required");
+        }
+    return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
     }
+
 
     @Override
     public String getUsername() {

@@ -28,9 +28,14 @@ public class UserService {
             logger.warn("⚠️ Tentative d'inscription avec un email déjà utilisé : {}", user.getEmail());
             throw new IllegalStateException("Error: Email is already in use!");
         }
+        //Role de l'utilisateur
+        if (user.getRole() == null || user.getRole().isEmpty()) {
+            user.setRole("CLIENT");  // Assigner un rôle par défaut si absent
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         // Encodage du mot de passe
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword())); 
 
         // Sauvegarde de l'utilisateur
         User savedUser = userRepository.save(user);
@@ -38,6 +43,7 @@ public class UserService {
 
         // Masquer le mot de passe avant de retourner l'objet
         savedUser.setPassword("********");  // Masquer le mot de passe
-        return savedUser;
+        //return savedUser;
+        return userRepository.save(user);
     }
 }

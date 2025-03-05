@@ -82,7 +82,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
-    // 🔥 Constructor Injection (Bonne pratique)
+    //  Constructor Injection (Bonne pratique)
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, 
                           PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
         this.authenticationManager = authenticationManager;
@@ -92,8 +92,8 @@ public class AuthController {
     }
 
     /**
-     * ✅ Enregistrement d'un nouvel utilisateur avec validation.
-     * ✅ Vérifie si l'email est déjà utilisé avant d'enregistrer.
+     *  Enregistrement d'un nouvel utilisateur avec validation.
+     *  Vérifie si l'email est déjà utilisé avant d'enregistrer.
      */
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody @Valid SignupRequest request) {
@@ -110,8 +110,8 @@ public class AuthController {
     }
 
     /**
-     * ✅ Authentifie l'utilisateur et génère un JWT.
-     * ✅ Gère les erreurs d'identification proprement (401 Unauthorized).
+     *  Authentifie l'utilisateur et génère un JWT.
+     *  Gère les erreurs d'identification proprement (401 Unauthorized).
      */
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody @Valid LoginRequest credentials) {
@@ -128,7 +128,7 @@ public class AuthController {
         }
     }
 
-    // 🔥 DTOs pour valider les entrées (Bonne pratique)
+    //  DTOs pour valider les entrées (Bonne pratique)
     public static class SignupRequest {
         @Email(message = "Invalid email format")
         @NotBlank(message = "Email is required")
