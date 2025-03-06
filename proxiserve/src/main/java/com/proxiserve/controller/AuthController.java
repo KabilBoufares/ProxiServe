@@ -1,6 +1,7 @@
 package com.proxiserve.controller;
 
-
+import com.proxiserve.dto.SignupRequest;
+import com.proxiserve.dto.LoginRequest;
 
 import com.proxiserve.model.User;
 import com.proxiserve.repository.UserRepository;
@@ -12,65 +13,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+
 import java.util.Map;
-
-/*@RestController
-@RequestMapping("/api/auth")
-public class AuthController {
-
-    @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-
-    @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest().body("Error: Email is already in use!");
-        }
-
-        user.setPassword(passwordEncoder.encode(user.getPassword())); // Hash password
-        userRepository.save(user);
-
-        return ResponseEntity.ok("User registered successfully!");
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody Map<String, String> credentials) {
-        String email = credentials.get("email");
-        String password = credentials.get("password");
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, password)
-        );
-
-        String token = jwtTokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(Map.of("token", token));
-    }
-
-    
-}*/
-
-
-
-
-
+import java.util.Optional;
 
 import org.springframework.security.authentication.BadCredentialsException;
 
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+
 
 
 @RestController
@@ -100,14 +51,21 @@ public class AuthController {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Error: Email is already in use!");
         }
-
+    
+        //  Vérifier que le rôle est fourni, sinon assigner un rôle par défaut
+        String role = request.getRole() != null ? request.getRole().toUpperCase() : "CLIENT";
+    
+        //  Création de l'utilisateur avec email, mot de passe et rôle
         User user = new User();
         user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword())); // 🔥 Hashage sécurisé du mot de passe
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // Hashage sécurisé du mot de passe
+        user.setRole(role);  // 🔹 Ajout du rôle utilisateur
+    
         userRepository.save(user);
-
-        return ResponseEntity.ok("User registered successfully!");
+    
+        return ResponseEntity.ok("User registered successfully with role: " + role);
     }
+    
 
     /**
      *  Authentifie l'utilisateur et génère un JWT.
@@ -128,6 +86,23 @@ public class AuthController {
         }
     }
 
+
+    @PostMapping("/reset-password-request")
+    public ResponseEntity<?> requestResetPassword(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        Optional<User> userOpt = userRepository.findByEmail(email);
+    
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body("Email non trouvé !");
+        }
+    
+        // Générer un token temporaire pour reset password (10 minutes de validité)
+        String resetToken = jwtTokenProvider.generateTokenWithExpiration(email, 10 * 60 * 1000);
+    
+        // TODO: Envoyer ce token par email au user (à implémenter)
+        return ResponseEntity.ok(Map.of("resetToken", resetToken));
+    }
+    
     //endpoint pour vérifier un token
    @GetMapping("/validate-token")
     public ResponseEntity<?> validateToken(@RequestHeader("Authorization") String token) {
@@ -139,30 +114,6 @@ public class AuthController {
     
 
 
-    //  DTOs pour valider les entrées (Bonne pratique)
-    public static class SignupRequest {
-        @Email(message = "Invalid email format")
-        @NotBlank(message = "Email is required")
-        private String email;
-
-        @NotBlank(message = "Password is required")
-        @Size(min = 6, message = "Password must be at least 6 characters long")
-        private String password;
-
-        public String getEmail() { return email; }
-        public String getPassword() { return password; }
-    }
-
-    public static class LoginRequest {
-        @Email(message = "Invalid email format")
-        @NotBlank(message = "Email is required")
-        private String email;
-
-        @NotBlank(message = "Password is required")
-        private String password;
-
-        public String getEmail() { return email; }
-        public String getPassword() { return password; }
-    }
+   
 }
 

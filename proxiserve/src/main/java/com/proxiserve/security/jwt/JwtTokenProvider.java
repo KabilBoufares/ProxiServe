@@ -73,4 +73,14 @@ public class JwtTokenProvider {
         }
         return null;
     }
+
+    public String generateTokenWithExpiration(String email, long expirationMillis) {
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMillis))
+                .signWith(signingKey, SignatureAlgorithm.HS512)
+                .compact();
+    }
+    
 }

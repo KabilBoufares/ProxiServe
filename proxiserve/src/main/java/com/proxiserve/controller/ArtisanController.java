@@ -13,7 +13,7 @@ import java.util.List;
 public class ArtisanController {
 
     @Autowired
-    private ArtisanService artisanService;
+    private ArtisanService artisanService;cle
 
     @GetMapping("/nearby")
     public List<Artisan> getNearbyArtisans(

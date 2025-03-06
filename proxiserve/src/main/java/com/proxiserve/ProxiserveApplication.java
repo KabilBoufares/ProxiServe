@@ -14,17 +14,3 @@ public class ProxiserveApplication {
 
 
 
-
-
-
-
-
-
-/*
- * 
- * 
- * 
- * {
-    "token": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0QGV4YW1wbGUuY29tIiwiaWF0IjoxNzQxMTgxNjQwLCJleHAiOjE3NDEyNjgwNDB9.0hX89OYsV6514DpeJzOhGbjJi6CfBECgP8H-oPesetSC-vQr9LNCD7oCAmhveGebBIsBet8QrJNCUcHeOLBd-A"
-}
- */

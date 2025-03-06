@@ -31,7 +31,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())  // Disable CSRF (enable in production if needed)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))  // JWT is stateless
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/signup", "/api/auth/login").permitAll()  // Public routes
+                .requestMatchers("/api/auth/signup", "/api/auth/login","/api/auth/reset-password").permitAll()  // Public routes
                 .requestMatchers("/ping", "/test-db", "/api/artisans/**,/api/auth/validate-token").permitAll()  // Allow artisan APIs
                 .anyRequest().authenticated()  // Secure all other routes
             )

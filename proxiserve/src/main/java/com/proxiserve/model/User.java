@@ -50,11 +50,12 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (role == null || role.isEmpty()) {
+        if (role == null || role.trim().isEmpty()) {
             throw new IllegalArgumentException("A granted authority textual representation is required");
         }
-    return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()));
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role.trim().toUpperCase()));
     }
+
 
 
     @Override
