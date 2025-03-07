@@ -73,8 +73,8 @@ Une fois l'API démarrée, nous avons testé HTTPS avec :
 
 Le navigateur a affiché : **"API is alive! Kabil is here"**, confirmant que l’API fonctionne en HTTPS.
 
-![Test HTTPS](![image](https://github.com/user-attachments/assets/7f2ee304-7f72-4f5f-bd13-d95c88f7b40a)
-)  
+![image](https://github.com/user-attachments/assets/7f2ee304-7f72-4f5f-bd13-d95c88f7b40a)
+ 
 _Exemple de réponse obtenue sur le navigateur._
 
 ## 4️⃣ Prochaines étapes
