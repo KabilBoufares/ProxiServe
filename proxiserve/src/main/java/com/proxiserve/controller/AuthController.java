@@ -6,6 +6,10 @@ import com.proxiserve.dto.LoginRequest;
 import com.proxiserve.model.User;
 import com.proxiserve.repository.UserRepository;
 import com.proxiserve.security.jwt.JwtTokenProvider;
+import com.proxiserve.service.LoginAttemptService;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -71,20 +75,39 @@ public class AuthController {
      *  Authentifie l'utilisateur et génère un JWT.
      *  Gère les erreurs d'identification proprement (401 Unauthorized).
      */
+
+    @Autowired
+    private LoginAttemptService loginAttemptService;
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody @Valid LoginRequest credentials) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(credentials.getEmail(), credentials.getPassword())
-            );
+        String email = credentials.getEmail();
 
-            String token = jwtTokenProvider.generateToken(authentication);
-            return ResponseEntity.ok(Map.of("token", token));
-
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Invalid email or password");
+        // Vérifier si l'utilisateur est bloqué
+        if (loginAttemptService.isBlocked(email)) {
+            return ResponseEntity.status(HttpStatus.LOCKED)
+                    .body("Trop de tentatives échouées. Compte bloqué pour 15 minutes.");
         }
+
+    try {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(email, credentials.getPassword())
+        );
+
+        // Générer un token JWT
+        String token = jwtTokenProvider.generateToken(authentication);
+
+        // Réinitialiser les tentatives après une connexion réussie
+        loginAttemptService.loginSucceeded(email);
+
+        return ResponseEntity.ok(Map.of("token", token));
+
+    } catch (BadCredentialsException e) {
+        // Incrémenter le compteur de tentatives échouées
+        loginAttemptService.loginFailed(email);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password");
     }
+}
+
 
 
     @PostMapping("/reset-password-request")

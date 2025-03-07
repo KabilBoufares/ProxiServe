@@ -38,15 +38,19 @@ public class User implements UserDetails {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    //  champs pour stocker les tentatives de connexion
+
+    private int failedLoginAttempts = 0;
+    private boolean accountLocked = false;
+    private LocalDateTime lockTime;
+
+
     //  Méthode pour définir un mot de passe sécurisé via le service
     public void setEncodedPassword(String encodedPassword) {
         this.password = encodedPassword;
     }
 
-    /*@Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(role));
-    }*/
+    //
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
