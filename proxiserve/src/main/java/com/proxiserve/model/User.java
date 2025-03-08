@@ -44,6 +44,11 @@ public class User implements UserDetails {
     private boolean accountLocked = false;
     private LocalDateTime lockTime;
 
+    //un champ resetPasswordToken pour stocker le token de réinitialisation de mot de passe
+    //et un champ tokenExpiration pour stocker la date d'expiration du token.
+    private String resetPasswordToken;
+    private LocalDateTime tokenExpiration;
+
 
     //  Méthode pour définir un mot de passe sécurisé via le service
     public void setEncodedPassword(String encodedPassword) {

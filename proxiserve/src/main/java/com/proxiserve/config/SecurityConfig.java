@@ -35,7 +35,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         .csrf(csrf -> csrf.disable()) // Désactiver CSRF pour les API stateless
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT = stateless
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/reset-password").permitAll() // Routes publiques
+            .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/request-reset-password" , "/api/auth/reset-password").permitAll() // Routes publiques
             .requestMatchers(HttpMethod.GET, "/ping", "/test-db").permitAll() // Routes publiques
             .requestMatchers("/api/artisans/**").hasAuthority("ROLE_ARTISAN") // Artisan-specific routes
             .requestMatchers("/api/auth/validate-token").authenticated() // ✅ autorisé tout les auth users
