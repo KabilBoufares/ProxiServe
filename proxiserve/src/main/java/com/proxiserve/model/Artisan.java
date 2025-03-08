@@ -40,7 +40,7 @@ public class Artisan {
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE) // Index géospatial pour la recherche par localisation
     private GeoJsonPoint location;
 
-    // ✅ Calculer dynamiquement le rating au lieu de le stocker
+    // Calculer dynamiquement le rating au lieu de le stocker
     public double getRating() {
         if (reviews == null || reviews.isEmpty()) {
             return 0.0;

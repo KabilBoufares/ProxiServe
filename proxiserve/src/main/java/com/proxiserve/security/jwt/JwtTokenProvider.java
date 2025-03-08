@@ -13,32 +13,54 @@ import java.util.Date;
 import javax.crypto.SecretKey;
 import java.util.Base64;
 
+/**
+ * Classe responsable de la gestion des tokens JWT.
+ * Elle génère, valide et extrait les informations des tokens JWT.
+ */
 @Component
 public class JwtTokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
-    private final SecretKey signingKey;
-    private final long jwtExpirationMs;
+    private final SecretKey signingKey;  // Clé secrète pour signer les tokens
+    private final long jwtExpirationMs;  // Durée de validité du token en millisecondes
 
+    /**
+     * Constructeur qui initialise la clé de signature et la durée d'expiration du JWT.
+     * 
+     * @param jwtSecret Clé secrète encodée en Base64 (définie dans application.properties)
+     * @param jwtExpirationMs Durée de vie du token en millisecondes
+     */
     public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret,
                             @Value("${jwt.expiration}") long jwtExpirationMs) {
-        //byte[] keyBytes = Base64.getDecoder().decode(jwtSecret);  // Décoder la clé en Base64
-        //this.signingKey = Keys.hmacShaKeyFor(keyBytes);  // Clé sécurisée
+        // Décodage de la clé Base64 pour garantir une sécurité optimale
         this.signingKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret));
         this.jwtExpirationMs = jwtExpirationMs;
     }
 
+    /**
+     * Génère un token JWT pour un utilisateur authentifié.
+     *
+     * @param authentication Objet contenant les informations de l'utilisateur
+     * @return Token JWT signé
+     */
     public String generateToken(Authentication authentication) {
-        String email = authentication.getName();
+        String email = authentication.getName();  // Récupération de l'email de l'utilisateur
 
         return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(signingKey, SignatureAlgorithm.HS512)
+                .setSubject(email)  // Ajout de l'email comme sujet du token
+                .claim("role", authentication.getAuthorities().toString())  // Ajout du rôle utilisateur
+                .setIssuedAt(new Date())  // Date de création du token
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))  // Date d'expiration
+                .signWith(signingKey, SignatureAlgorithm.HS512)  // Signature avec clé secrète
                 .compact();
     }
 
+    /**
+     * Extrait l'email de l'utilisateur à partir du token JWT.
+     *
+     * @param token JWT valide
+     * @return Email de l'utilisateur
+     */
     public String getUserEmailFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(signingKey)
@@ -48,32 +70,51 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
+    /**
+     * Valide un token JWT pour s'assurer qu'il est bien formé et non expiré.
+     *
+     * @param token JWT à valider
+     * @return true si le token est valide, false sinon
+     */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token);
+            Jwts.parserBuilder()
+                .setSigningKey(signingKey)
+                .build()
+                .parseClaimsJws(token);
+    
+            System.out.println("✅ Token valide : " + token);
             return true;
-        } catch (SecurityException ex) {
-            logger.error("🔴 Erreur de signature JWT invalide: {}", ex.getMessage());
-        } catch (MalformedJwtException ex) {
-            logger.error("🔴 JWT mal formé: {}", ex.getMessage());
-        } catch (ExpiredJwtException ex) {
-            logger.error("🔴 JWT expiré: {}", ex.getMessage());
-        } catch (UnsupportedJwtException ex) {
-            logger.error("🔴 JWT non supporté: {}", ex.getMessage());
-        } catch (IllegalArgumentException ex) {
-            logger.error("🔴 JWT claims sont vides: {}", ex.getMessage());
+
+        } catch (ExpiredJwtException e) {
+            System.out.println(" Token expiré !");
+        } catch (JwtException | IllegalArgumentException e) {
+            System.out.println(" Token invalide !");
         }
         return false;
     }
 
+    /**
+     * Extrait le token JWT depuis une requête HTTP.
+     * 
+     * @param request Requête HTTP contenant le header "Authorization"
+     * @return Token JWT si présent, sinon null
+     */
     public String getTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+            return bearerToken.substring(7); // Extraction du token après "Bearer "
         }
         return null;
     }
 
+    /**
+     * Génère un token avec une expiration personnalisée (utilisé pour la réinitialisation de mot de passe).
+     * 
+     * @param email Email de l'utilisateur
+     * @param expirationMillis Durée de validité du token en millisecondes
+     * @return Token JWT temporaire
+     */
     public String generateTokenWithExpiration(String email, long expirationMillis) {
         return Jwts.builder()
                 .setSubject(email)
@@ -82,5 +123,4 @@ public class JwtTokenProvider {
                 .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
     }
-    
 }
