@@ -80,9 +80,9 @@
 
 #### **4.2. RBAC (Role-Based Access Control)**
 - **Exemples** :
-  - `ROLE_CLIENT` : Accès en lecture aux services, écriture aux réservations.
-  - `ROLE_ARTISAN` : Gestion de ses services et réservations.
-- **Configuration** : `@PreAuthorize` dans les contrôleurs.
+  - `ROLE_CLIENT` : Accès en lecture aux services, écriture aux réservations .
+  - `ROLE_ARTISAN` : Gestion de ses services et réservations .
+- **Configuration** : `@PreAuthorize` dans les contrôleurs .
 
 ---
 
@@ -102,7 +102,7 @@
 
 ### **Étapes Suivantes (Post-MVP)**
 1. **Chat en Temps Réel** : Intégration WebSocket (ex: STOMP avec SockJS).
-2. **Gestion d’Équipe** : Ajout de rôles `EMPLOYEE` pour les entreprises.
+2. **Gestion d’Équipe** : Ajout de rôles `EMPLOYEE` pour les entreprises.(peut étre annuler ) 
 3. **Analytiques** : Dashboard avec des graphiques (ex: Spring Boot + React).
 4. **Cache Redis** : Optimisation des performances de recherche.
 
