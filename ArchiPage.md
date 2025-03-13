@@ -40,8 +40,10 @@ Chaque page aura une disposition claire et intuitive avec des boutons bien posit
 - 📌 **Lien "Déjà un compte ? Se connecter"** (vers la page Login)
 
 ---
-➖ Séparateur ("ou s'inscrire / login avec")
-🔴 Bouton "S'inscrire/login  avec Google"    remarque dans les deux page .
+-➖ Séparateur ("ou s'inscrire / login avec")
+-🔴 Bouton "S'inscrire/login  avec Google"    remarque dans les deux page .
+
+---
 
 ### **3️⃣ Page de Réinitialisation du Mot de Passe (Reset Password)**
 📍 **URL :** `/reset-password`
