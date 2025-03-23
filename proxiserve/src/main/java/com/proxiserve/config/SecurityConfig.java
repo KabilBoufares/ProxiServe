@@ -24,42 +24,70 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
 
+    /**
+     * Constructeur avec injection de dépendances
+     * @param jwtTokenProvider fournisseur de tokens JWT
+     * @param userDetailsService service de gestion des utilisateurs
+     */
     public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * Configuration de la sécurité Spring Boot
+     * @param http configuration de sécurité HTTP
+     * @return SecurityFilterChain
+     * @throws Exception en cas d'erreur de configuration
+     */
     @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(csrf -> csrf.disable()) // Désactiver CSRF pour les API stateless
-        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT = stateless
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/request-reset-password" , "/api/auth/reset-password").permitAll() // Routes publiques
-            .requestMatchers(HttpMethod.GET, "/ping", "/test-db").permitAll() // Routes publiques
-            .requestMatchers("/api/artisans/**").hasAuthority("ROLE_ARTISAN") // Artisan-specific routes
-            .requestMatchers("/api/auth/validate-token").authenticated() // ✅ autorisé tout les auth users
-            .anyRequest().authenticated() // Toute autre route nécessite une authentification
-        )
-        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService), 
-                         UsernamePasswordAuthenticationFilter.class); // Filtre JWT
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.disable()) // Désactiver CSRF pour les API REST (JWT est stateless)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Gestion de session stateless avec JWT
+            .authorizeHttpRequests(auth -> auth
+                // Routes publiques accessibles sans authentification
+                .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT") // Accès limité aux clients
 
-    return http.build();
-}
+                // Autoriser les Clients et Admins à voir la liste des clients
+                .requestMatchers(HttpMethod.GET, "/api/clients").hasAnyRole("ADMIN", "CLIENT")
 
+                // Autoriser les Clients et Artisans à voir les artisans
+                .requestMatchers(HttpMethod.GET, "/api/artisans").hasAnyRole("ADMIN", "CLIENT", "ARTISAN")
+                // Toute autre requête nécessite une authentification
+                .anyRequest().authenticated()
+            )
+            // Ajout du filtre JWT avant le filtre d'authentification standard
+            .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService), 
+                             UsernamePasswordAuthenticationFilter.class);
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Hashage des mots de passe
+        return http.build();
     }
 
+    /**
+     * Bean pour le hachage des mots de passe avec BCrypt
+     * @return PasswordEncoder instance de BCryptPasswordEncoder
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Bean pour la gestion de l'authentification
+     * @param authConfig configuration d'authentification
+     * @return AuthenticationManager
+     * @throws Exception en cas d'erreur de configuration
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
     /**
-     *  Redirection automatique HTTP → HTTPS
+     * Configuration du serveur embarqué Tomcat pour la redirection HTTP → HTTPS
+     * @return ServletWebServerFactory
      */
     @Bean
     public ServletWebServerFactory servletContainer() {
@@ -68,12 +96,16 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
         return tomcat;
     }
 
+    /**
+     * Configuration du connecteur pour la redirection automatique HTTP vers HTTPS
+     * @return Connector configuré pour redirection
+     */
     private Connector httpToHttpsRedirectConnector() {
         Connector connector = new Connector(TomcatServletWebServerFactory.DEFAULT_PROTOCOL);
         connector.setScheme("http");
-        connector.setPort(8080); // Port HTTP
+        connector.setPort(8080); // Port HTTP utilisé
         connector.setSecure(false);
-        connector.setRedirectPort(8443); // Redirige automatiquement vers HTTPS
+        connector.setRedirectPort(8443); // Redirection automatique vers HTTPS (port sécurisé)
         return connector;
     }
 }

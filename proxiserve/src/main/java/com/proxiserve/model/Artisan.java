@@ -1,50 +1,69 @@
 package com.proxiserve.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
-import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
+/**
+ * Modèle représentant un artisan dans la plateforme.
+ */
 @Document(collection = "artisans")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Artisan {
 
+    /** Identifiant unique généré par MongoDB */
     @Id
     private String id;
 
-    @NotBlank(message = "User ID cannot be blank")
-    @Indexed(unique = true)  // Supprimer cette contrainte si plusieurs artisans peuvent être liés à un même utilisateur
-    private String userId; // Référence au User
+    /** Référence à l'utilisateur associé (User) */
+    @NotBlank(message = "L'ID utilisateur ne peut pas être vide")
+    private String userId;
 
-    @NotBlank(message = "Profession cannot be blank")
+    /** Profession de l'artisan */
+    @NotBlank(message = "La profession est requise")
     private String profession;
 
+    /** Nom de l'entreprise (optionnel) */
     private String companyName;
-    
-    @NotNull(message = "Service categories cannot be null")
+
+    /** Catégories de services proposés par l'artisan */
+    @NotNull(message = "Les catégories de service ne peuvent pas être nulles")
+    @Size(min = 1, message = "L'artisan doit proposer au moins un service")
     private List<String> serviceCategories;
 
-    //@DBRef  // Option si `Review` est dans une collection séparée
+    /** Liste des avis laissés par les clients */
     private List<Review> reviews;
 
-    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE) // Index géospatial pour la recherche par localisation
+    /** Localisation géographique pour la recherche de proximité */
+    @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
     private GeoJsonPoint location;
 
-    // Calculer dynamiquement le rating au lieu de le stocker
+    /** Date de création de l'artisan */
+    @CreatedDate
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    /**
+     * Calcule dynamiquement la note moyenne des avis de l'artisan.
+     * @return Moyenne des notes ou 0.0 si aucun avis n'est disponible.
+     */
     public double getRating() {
-        if (reviews == null || reviews.isEmpty()) {
-            return 0.0;
-        }
-        return reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0);
+        return (reviews != null && !reviews.isEmpty()) 
+            ? reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0) 
+            : 0.0;
     }
 }

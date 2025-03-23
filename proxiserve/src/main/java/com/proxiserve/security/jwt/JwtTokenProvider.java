@@ -1,10 +1,12 @@
 package com.proxiserve.security.jwt;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +35,8 @@ public class JwtTokenProvider {
     public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret,
                             @Value("${jwt.expiration}") long jwtExpirationMs) {
         // Décodage de la clé Base64 pour garantir une sécurité optimale
-        this.signingKey = Keys.hmacShaKeyFor(Base64.getDecoder().decode(jwtSecret));
+        this.signingKey = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+
         this.jwtExpirationMs = jwtExpirationMs;
     }
 
@@ -46,14 +49,25 @@ public class JwtTokenProvider {
     public String generateToken(Authentication authentication) {
         String email = authentication.getName();  // Récupération de l'email de l'utilisateur
 
+        //  Extraction propre du rôle (évite le format [ROLE_ROLE_CLIENT])
+        String role = authentication.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority) // Extrait l'autorité
+            .map(auth -> auth.replace("ROLE_", "")) // Supprime le préfixe si déjà existant
+            .findFirst()
+            .orElse("CLIENT"); //  Définit un rôle par défaut
+
+            System.out.println("🔍 [DEBUG] Token généré → Email: " + email + " | Role: " + role);
+
+
         return Jwts.builder()
                 .setSubject(email)  // Ajout de l'email comme sujet du token
-                .claim("role", authentication.getAuthorities().toString())  // Ajout du rôle utilisateur
+                .claim("role", "ROLE_" + role.toUpperCase())  //  Ajoute "ROLE_" proprement
                 .setIssuedAt(new Date())  // Date de création du token
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))  // Date d'expiration
                 .signWith(signingKey, SignatureAlgorithm.HS512)  // Signature avec clé secrète
                 .compact();
     }
+
 
     /**
      * Extrait l'email de l'utilisateur à partir du token JWT.
@@ -83,7 +97,7 @@ public class JwtTokenProvider {
                 .build()
                 .parseClaimsJws(token);
     
-            System.out.println("✅ Token valide : " + token);
+            System.out.println(" Token valide : " + token);
             return true;
 
         } catch (ExpiredJwtException e) {
