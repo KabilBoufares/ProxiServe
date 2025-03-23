@@ -41,29 +41,40 @@ public class SecurityConfig {
      * @throws Exception en cas d'erreur de configuration
      */
     @Bean
+    
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Désactiver CSRF pour les API REST (JWT est stateless)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Gestion de session stateless avec JWT
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Routes publiques accessibles sans authentification
+                // Routes accessibles sans authentification
                 .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT") // Accès limité aux clients
+                .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT") // Corrigé
 
-                // Autoriser les Clients et Admins à voir la liste des clients
-                .requestMatchers(HttpMethod.GET, "/api/clients").hasAnyRole("ADMIN", "CLIENT")
-
-                // Autoriser les Clients et Artisans à voir les artisans
-                .requestMatchers(HttpMethod.GET, "/api/artisans").hasAnyRole("ADMIN", "CLIENT", "ARTISAN")
+                // Admins peuvent voir le dashboard
+                .requestMatchers(HttpMethod.GET, "/api/admin/dashboard").hasAuthority("ROLE_ADMIN")
+                //  Admins peuvent voir les clients
+                .requestMatchers(HttpMethod.GET, "/api/clients").hasAuthority("ROLE_ADMIN") 
+                //  Admins peuvent voir les artisans
+                .requestMatchers(HttpMethod.GET, "/api/artisans").hasAuthority("ROLE_ADMIN")
+                
+    
+                // Clients et Artisans peuvent voir les artisans
+                .requestMatchers(HttpMethod.GET, "/api/artisans").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
+                .requestMatchers(HttpMethod.POST, "/api/services").hasAuthority("ROLE_ARTISAN")
+        
                 // Toute autre requête nécessite une authentification
                 .anyRequest().authenticated()
             )
-            // Ajout du filtre JWT avant le filtre d'authentification standard
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService), 
                              UsernamePasswordAuthenticationFilter.class);
-
+    
         return http.build();
     }
+
+
+    
+    
 
     /**
      * Bean pour le hachage des mots de passe avec BCrypt

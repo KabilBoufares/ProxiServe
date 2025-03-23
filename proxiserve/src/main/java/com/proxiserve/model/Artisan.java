@@ -30,6 +30,10 @@ public class Artisan {
     @Id
     private String id;
 
+    /*Email */
+    @NotBlank(message = "Le nom complet ne peut pas être vide")
+    private String email;
+
     /** Référence à l'utilisateur associé (User) */
     @NotBlank(message = "L'ID utilisateur ne peut pas être vide")
     private String userId;

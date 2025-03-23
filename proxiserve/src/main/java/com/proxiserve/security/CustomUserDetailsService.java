@@ -39,16 +39,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     logger.warn(" Tentative de connexion avec un email inexistant: {}", email);
-                    return new UsernameNotFoundException("Utilisateur non trouvé avec l'email : " + email);
+                    return new UsernameNotFoundException("Utilisateur non trouve avec l'email : " + email);
                 });
 
         // Vérifier si le compte est verrouillé
-        if (user.isAccountNonLocked()) {
-            logger.warn(" Tentative de connexion sur un compte verrouillé : {}", email);
-            throw new UsernameNotFoundException("Compte verrouillé. Veuillez contacter l'administrateur.");
+        if (!user.isAccountNonLocked()) {
+            logger.warn(" Tentative de connexion sur un compte verrouille : {}", email);
+            throw new UsernameNotFoundException("Compte verrouille. Veuillez contacter l'administrateur.");
         }
 
-        logger.info(" Utilisateur authentifié avec succès : {}", email);
+        logger.info(" Utilisateur authentifie avec succes : {}", email);
         return user;
     }
 }

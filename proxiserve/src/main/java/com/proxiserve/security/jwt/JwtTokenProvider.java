@@ -21,10 +21,12 @@ import java.util.Base64;
  */
 @Component
 public class JwtTokenProvider {
-
+    @Value("${jwt.secret}")
+    private String secretKey;
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
     private final SecretKey signingKey;  // Clé secrète pour signer les tokens
     private final long jwtExpirationMs;  // Durée de validité du token en millisecondes
+    
 
     /**
      * Constructeur qui initialise la clé de signature et la durée d'expiration du JWT.
@@ -47,27 +49,25 @@ public class JwtTokenProvider {
      * @return Token JWT signé
      */
     public String generateToken(Authentication authentication) {
-        String email = authentication.getName();  // Récupération de l'email de l'utilisateur
-
-        //  Extraction propre du rôle (évite le format [ROLE_ROLE_CLIENT])
+        String email = authentication.getName();
+    
+        // Extraction du rôle et ajout du préfixe "ROLE_"
         String role = authentication.getAuthorities().stream()
             .map(GrantedAuthority::getAuthority) // Extrait l'autorité
-            .map(auth -> auth.replace("ROLE_", "")) // Supprime le préfixe si déjà existant
             .findFirst()
-            .orElse("CLIENT"); //  Définit un rôle par défaut
-
-            System.out.println("🔍 [DEBUG] Token généré → Email: " + email + " | Role: " + role);
-
-
+            .orElse("ROLE_CLIENT"); // Définit un rôle par défaut
+    
+        logger.info("Token généré : Email={} | Role={}", email, role); // Log du token généré
+    
         return Jwts.builder()
-                .setSubject(email)  // Ajout de l'email comme sujet du token
-                .claim("role", "ROLE_" + role.toUpperCase())  //  Ajoute "ROLE_" proprement
-                .setIssuedAt(new Date())  // Date de création du token
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))  // Date d'expiration
-                .signWith(signingKey, SignatureAlgorithm.HS512)  // Signature avec clé secrète
+                .setSubject(email)
+                .claim("role", role) // Ajoute "ROLE_" si absent
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
     }
-
+    
 
     /**
      * Extrait l'email de l'utilisateur à partir du token JWT.

@@ -13,16 +13,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-
 import java.io.IOException;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
-    private final String signingKey = "a7rz/lF39+P8ZRrljTiEX7fkY0qGycCUocGXrax+qKv1JRqhGbzTO7yMqUoP5DAH4+txc0XIPcJDfQ3qf7/s7g=="; // Replace with your actual signing key
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -33,10 +29,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+
+        String path = request.getServletPath();
+        //Skip auth pour les endpoints publics 
+        if (path.startsWith("/api/auth")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = getTokenFromRequest(request);
         if (token != null && jwtTokenProvider.validateToken(token)) {
             String email = jwtTokenProvider.getUserEmailFromToken(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+            System.out.println(" [DEBUG] Utilisateur authentifié : " + email);
+            System.out.println(" [DEBUG] Rôles récupérés : " + userDetails.getAuthorities());
             
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -45,19 +52,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            String email = jwtTokenProvider.getUserEmailFromToken(token);
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-        
-            System.out.println(" [DEBUG] Utilisateur authentifié : " + email);
-            System.out.println(" [DEBUG] Rôles récupérés : " + userDetails.getAuthorities());
-        
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
         
 
         filterChain.doFilter(request, response);
@@ -72,26 +66,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
 
-public Authentication getAuthentication(String token) {
+    public Authentication getAuthentication(String token) {
+        String email = jwtTokenProvider.getUserEmailFromToken(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
     
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(signingKey)
-            .build()
-            .parseClaimsJws(token)
-            .getBody();
-
-    String email = claims.getSubject();
-    String role = claims.get("role", String.class);
-
-    System.out.println(" [DEBUG] Token Décrypté → Email: " + email + " | Role: " + role); //  Debug Token
-
-    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-    return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-}
-
-
-
-
+        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+    
 
 }

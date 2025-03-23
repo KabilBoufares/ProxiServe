@@ -87,27 +87,26 @@ public class LoginAttemptService {
     public boolean isBlocked(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isEmpty()) return false;
-
+    
         User user = userOpt.get();
-
+    
         if (user.isAccountLocked()) {
             long minutesSinceLock = ChronoUnit.MINUTES.between(user.getLockTime(), LocalDateTime.now());
-
-            if (minutesSinceLock >= LOCK_TIME_DURATION) {
-                // Déverrouillage automatique après expiration du délai
+    
+            if (minutesSinceLock >= 15) { // Déverrouillage après 15 minutes
                 user.setAccountLocked(false);
                 user.setFailedLoginAttempts(0);
                 user.setLockTime(null);
                 userRepository.save(user);
-
-                logger.info(" Le compte {} a été automatiquement déverrouillé après {} minutes", email, minutesSinceLock);
+                logger.info("Le compte {} a été automatiquement déverrouillé après {} minutes", email, minutesSinceLock);
                 return false;
             }
-
-            logger.warn(" Le compte {} est toujours verrouillé. Temps restant : {} minutes", email, LOCK_TIME_DURATION - minutesSinceLock);
+    
+            logger.warn("Le compte {} est toujours verrouillé. Temps restant : {} minutes", email, 15 - minutesSinceLock);
             return true;
         }
-
+    
         return false;
     }
+    
 }

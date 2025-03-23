@@ -10,9 +10,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ArtisanRepository extends MongoRepository<Artisan, String> {
+
+
+    Optional<Artisan> findByEmail(String email);
 
     /**
      * Recherche des artisans à proximité d'une localisation donnée.
