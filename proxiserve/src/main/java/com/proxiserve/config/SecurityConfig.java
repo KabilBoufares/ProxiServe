@@ -50,7 +50,7 @@ public class SecurityConfig {
                 // Routes accessibles sans authentification
                 .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT") // Corrigé
-
+                .requestMatchers(HttpMethod.POST, "/api/services").hasAuthority("ROLE_ARTISAN")
                 // Admins peuvent voir le dashboard
                 .requestMatchers(HttpMethod.GET, "/api/admin/dashboard").hasAuthority("ROLE_ADMIN")
                 //  Admins peuvent voir les clients
@@ -61,13 +61,13 @@ public class SecurityConfig {
     
                 // Clients et Artisans peuvent voir les artisans
                 .requestMatchers(HttpMethod.GET, "/api/artisans").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
-                .requestMatchers(HttpMethod.POST, "/api/services").hasAuthority("ROLE_ARTISAN")
-        
+                
+
                 // Toute autre requête nécessite une authentification
                 .anyRequest().authenticated()
             )
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService), 
-                             UsernamePasswordAuthenticationFilter.class);
+                            UsernamePasswordAuthenticationFilter.class);
     
         return http.build();
     }

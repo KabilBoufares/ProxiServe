@@ -3,7 +3,6 @@ package com.proxiserve.controller;
 import org.springframework.web.bind.annotation.*;
 import com.proxiserve.model.Artisan;
 import com.proxiserve.service.ArtisanService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.slf4j.Logger;

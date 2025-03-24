@@ -24,7 +24,8 @@ public class ServiceController {
     @PostMapping
     public ResponseEntity<?> createService(@RequestBody ServiceRequest request, Principal principal) {
         String email = principal.getName();
-
+        System.out.println("[DEBUG] Principal connecté : " + email);
+        //Debug  Récupération de l'artisan
         Artisan artisan = artisanRepository.findByEmail(email)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Artisan non trouvé"));
 

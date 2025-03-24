@@ -105,6 +105,7 @@ public class AuthController {
 
     if ("ROLE_ARTISAN".equals(role)) {
         Artisan artisan = new Artisan();
+        artisan.setEmail(user.getEmail());
         artisan.setUserId(user.getId());
         artisan.setProfession(request.getProfession() != null ? request.getProfession() : "Non spécifié");
         artisan.setCompanyName(request.getCompanyName() != null ? request.getCompanyName() : "Entreprise inconnue");
