@@ -26,6 +26,10 @@ public class Client {
     /** Référence à l'utilisateur associé (User) */
     @NotBlank(message = "L'ID utilisateur ne peut pas être vide")
     private String userId;
+    
+    /** Adresse e-mail du client */
+    @NotBlank(message = "L'adresse e-mail est requise")
+    private String email;
 
     /** Nom complet du client */
     @NotBlank(message = "Le nom du client est requis")

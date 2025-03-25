@@ -23,6 +23,14 @@ public interface ClientRepository extends MongoRepository<Client, String> {
     Optional<Client> findByUserId(String userId);
 
     /**
+     * Recherche d'un client par adresse e-mail.
+     * @param email Adresse e-mail du client.
+     * @return Un `Optional
+     * <Client>` si un client avec cette adresse e-mail existe.
+     */
+    Optional<Client> findByEmail(String email);
+
+    /**
      * Recherche d'un client par numéro de téléphone.
      * @param phoneNumber Numéro de téléphone du client.
      * @return Un `Optional<Client>` si un client avec ce numéro existe.
