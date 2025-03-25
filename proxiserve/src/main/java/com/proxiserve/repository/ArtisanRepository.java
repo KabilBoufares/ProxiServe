@@ -15,7 +15,29 @@ import java.util.Optional;
 @Repository
 public interface ArtisanRepository extends MongoRepository<Artisan, String> {
 
+    /**
+     * Recherche d'un artisan par son identifiant utilisateur.
+     * 
+     * @param userId Identifiant de l'utilisateur.
+     * @return Artisan correspondant à l'identifiant utilisateur.
+     */
 
+    Optional<Artisan> findByUserId(String userId);
+
+    /**
+     * Recherche d'un artisan par son identifiant.
+     * 
+     * @param id Identifiant de l'artisan.
+     * @return Artisan correspondant à l'identifiant.
+     */
+    Optional<Artisan> findById(String id);
+
+    /**
+     * Recherche d'un artisan par son email.
+     * 
+     * @param email Adresse email de l'artisan.
+     * @return Artisan correspondant à l'email.
+     */
     Optional<Artisan> findByEmail(String email);
 
     /**

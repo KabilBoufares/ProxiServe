@@ -1,5 +1,7 @@
 package com.proxiserve.controller;
 
+import com.proxiserve.dto.BookingView;
+import com.proxiserve.model.Artisan;
 import com.proxiserve.model.Booking;
 import com.proxiserve.model.Client;
 import com.proxiserve.model.ServiceEntity;
@@ -7,6 +9,8 @@ import com.proxiserve.model.User;
 import com.proxiserve.repository.BookingRepository;
 import com.proxiserve.repository.ClientRepository;
 import com.proxiserve.repository.ServiceRepository;
+import com.proxiserve.repository.ArtisanRepository;
+
 import com.proxiserve.repository.UserRepository;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -31,21 +35,25 @@ public class BookingController {
     private final ClientRepository clientRepository;
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
+    private final ArtisanRepository artisanRepository;
+
 
     public BookingController(BookingRepository bookingRepository,
-                             ClientRepository clientRepository,
-                             ServiceRepository serviceRepository,
-                             UserRepository userRepository) {
+                            ClientRepository clientRepository,
+                            ServiceRepository serviceRepository,
+                            UserRepository userRepository,
+                            ArtisanRepository artisanRepository) {
         this.bookingRepository = bookingRepository;
         this.clientRepository = clientRepository;
         this.serviceRepository = serviceRepository;
         this.userRepository = userRepository;
+        this.artisanRepository = artisanRepository;
     }
 
     //  Créer une réservation (par un client connecté)
     @PostMapping
     public ResponseEntity<?> createBooking(@Valid @RequestBody Booking bookingRequest,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
+                                        @AuthenticationPrincipal UserDetails userDetails) {
         logger.info("[POST] /api/bookings called by {}", userDetails.getUsername());
 
         String email = userDetails.getUsername();
@@ -82,11 +90,13 @@ public class BookingController {
 
     //  Récupérer les réservations du client connecté
     @GetMapping("/client")
-    public ResponseEntity<?> getBookingsForClient(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> getBookingsForClient(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(required = false) String status) {
+
         logger.info("[GET] /api/bookings/client called by {}", userDetails.getUsername());
 
-        String email = userDetails.getUsername();
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
         }
@@ -96,25 +106,107 @@ public class BookingController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client non trouvé");
         }
 
-        List<Booking> bookings = bookingRepository.findByClientId(clientOpt.get().getId());
-        return ResponseEntity.ok(bookings);
+        String clientId = clientOpt.get().getId();
+
+        //  Appliquer un filtre par statut si fourni
+        List<Booking> bookings = (status != null && !status.isBlank())
+                ? bookingRepository.findByClientIdAndStatus(clientId, status.toUpperCase())
+                : bookingRepository.findByClientId(clientId);
+
+        List<BookingView> result = bookings.stream().map(booking -> {
+            ServiceEntity service = serviceRepository.findById(booking.getServiceId()).orElse(null);
+
+            return new BookingView(
+                booking.getId(),
+                booking.getStatus(),
+                booking.getBookingDate(),
+                booking.getCreatedAt(),
+                clientOpt.get().getFullName(),       // On a le client en cache
+                clientOpt.get().getEmail(),
+                service != null ? service.getTitle() : null,
+                service != null ? service.getDescription() : null,
+                service != null ? service.getPrice() : 0.0
+            );
+        }).toList();
+
+        return ResponseEntity.ok(result);
     }
 
-    //  Obtenir une réservation par son ID
-    @GetMapping("/{id}")
-    public ResponseEntity<Booking> getBookingById(@PathVariable String id) {
-        logger.info("[GET] /api/bookings/{}", id);
-        Optional<Booking> bookingOpt = bookingRepository.findById(id);
-        return bookingOpt
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+
+   
+
+    //  Récupérer les réservations des services de l'artisan connecté
+    @GetMapping("/artisan")
+    public ResponseEntity<?> getBookingsForArtisan(@AuthenticationPrincipal UserDetails userDetails) {
+        logger.info("[GET] /api/bookings/artisan called by {}", userDetails.getUsername());
+
+        String email = userDetails.getUsername();
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
+        }
+
+        Optional<Artisan> artisanOpt = artisanRepository.findByUserId(userOpt.get().getId());
+        if (artisanOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Artisan non trouvé");
+        }
+
+        String artisanId = artisanOpt.get().getId(); //  le vrai ID de l'artisan
+
+        List<ServiceEntity> services = serviceRepository.findByArtisanId(artisanId);
+        if (services.isEmpty()) {
+            logger.info("Aucun service trouvé pour l'artisan {}", artisanId);
+            return ResponseEntity.ok(List.of()); // liste vide mais sans erreur
+        }
+
+        List<String> serviceIds = services.stream()
+                                        .map(ServiceEntity::getId)
+                                        .toList();
+
+        List<Booking> bookings = bookingRepository.findByServiceIdIn(serviceIds);
+        
+
+        List<BookingView> result = bookings.stream().map(booking -> {
+            String clientId = booking.getClientId();
+            String serviceId = booking.getServiceId();
+
+            // Récupérer le client
+            var client = clientRepository.findById(clientId).orElse(null);
+            // Récupérer le service
+            var service = serviceRepository.findById(serviceId).orElse(null);
+
+            return new BookingView(
+                booking.getId(),
+                booking.getStatus(),
+                booking.getBookingDate(),
+                booking.getCreatedAt(),
+                client != null  ? client.getFullName() : null,
+                client != null ? client.getEmail() : null,
+                service != null ? service.getTitle() : null,
+                service != null ? service.getDescription() : null,
+                service != null ? service.getPrice() : 0.0
+            );
+        }).toList();
+
+        return ResponseEntity.ok(result);
+
     }
 
-    //  Annuler une réservation
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> cancelBooking(@PathVariable String id,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
+                                        @AuthenticationPrincipal UserDetails userDetails) {
         logger.info("[DELETE] /api/bookings/{} demandé par {}", id, userDetails.getUsername());
+
+        Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
+        }
+
+        Optional<Client> clientOpt = clientRepository.findByUserId(userOpt.get().getId());
+        if (clientOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client non trouvé");
+        }
 
         Optional<Booking> bookingOpt = bookingRepository.findById(id);
         if (bookingOpt.isEmpty()) {
@@ -122,9 +214,19 @@ public class BookingController {
         }
 
         Booking booking = bookingOpt.get();
+
+        //  Sécurité : vérifier que la réservation appartient bien au client connecté
+        if (!booking.getClientId().equals(clientOpt.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Réservation non autorisée");
+        }
+
         booking.setStatus("CANCELLED");
         bookingRepository.save(booking);
 
+        logger.info("Réservation {} annulée avec succès", booking.getId());
+
         return ResponseEntity.ok("Réservation annulée avec succès");
     }
+
+
 }

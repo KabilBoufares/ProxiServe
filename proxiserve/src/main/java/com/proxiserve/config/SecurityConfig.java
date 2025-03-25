@@ -58,6 +58,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT") // Corrigé
 
                 .requestMatchers(HttpMethod.POST, "/api/bookings").hasAuthority("ROLE_CLIENT")
+                .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").hasAuthority("ROLE_CLIENT")
 
                 .requestMatchers(HttpMethod.POST, "/api/services").hasAuthority("ROLE_ARTISAN")
                 // Admins peuvent voir le dashboard
