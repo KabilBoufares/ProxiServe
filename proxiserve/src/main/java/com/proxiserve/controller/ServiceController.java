@@ -102,16 +102,16 @@ public class ServiceController {
 
     //supprimer un service par son ID
     @DeleteMapping("/{id}")
-public ResponseEntity<?> deleteService(
-        @PathVariable String id,
-        @AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<?> deleteService(
+            @PathVariable String id,
+            @AuthenticationPrincipal UserDetails userDetails) {
 
-    Optional<ServiceEntity> serviceOpt = serviceRepository.findById(id);
+        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(id);
 
-    if (serviceOpt.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                             .body("Service non trouvé avec l'ID : " + id);
-    }
+        if (serviceOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body("Service non trouvé avec l'ID : " + id);
+        }
 
     ServiceEntity service = serviceOpt.get();
 
@@ -143,7 +143,7 @@ public ResponseEntity<?> deleteService(
 
         if (!service.getArtisanId().equals(artisan.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                 .body("Vous n'avez pas le droit de supprimer ce service.");
+                                .body("Vous n'avez pas le droit de supprimer ce service.");
         }
 
         serviceRepository.deleteById(id);
@@ -151,8 +151,17 @@ public ResponseEntity<?> deleteService(
     }
 
     return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                         .body("Vous n'avez pas les droits suffisants.");
+                        .body("Vous n'avez pas les droits suffisants.");
 }
+
+    // Récupérer les services d'un artisan
+    @GetMapping("/artisan/{artisanId}")
+    public ResponseEntity<List<ServiceEntity>> getServicesByArtisan(@PathVariable String artisanId) {
+        List<ServiceEntity> services = serviceRepository.findByArtisanId(artisanId);
+        return ResponseEntity.ok(services);
+    }
+
+
 
 
 }

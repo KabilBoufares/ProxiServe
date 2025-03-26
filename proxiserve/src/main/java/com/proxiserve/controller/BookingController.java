@@ -228,5 +228,43 @@ public class BookingController {
         return ResponseEntity.ok("Réservation annulée avec succès");
     }
 
+    //  Confirmer une réservation (par un artisan connecté)
+    @PutMapping("/{id}/confirm")
+    public ResponseEntity<?> confirmBooking(@PathVariable String id,
+                                            @AuthenticationPrincipal UserDetails userDetails) {
+        logger.info("[PUT] /api/bookings/{}/confirm demandé par {}", id, userDetails.getUsername());
+
+        Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
+        }
+
+        Optional<Artisan> artisanOpt = artisanRepository.findByUserId(userOpt.get().getId());
+        if (artisanOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Artisan non trouvé");
+        }
+
+        Optional<Booking> bookingOpt = bookingRepository.findById(id);
+        if (bookingOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Réservation non trouvée");
+        }
+
+        Booking booking = bookingOpt.get();
+
+        // Vérifie que la réservation concerne un service appartenant à l'artisan connecté
+        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(booking.getServiceId());
+        if (serviceOpt.isEmpty() || !serviceOpt.get().getArtisanId().equals(artisanOpt.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
+        }
+
+        booking.setStatus("CONFIRMED");
+        bookingRepository.save(booking);
+
+        logger.info("Réservation {} confirmée par l'artisan {}", id, artisanOpt.get().getId());
+
+        return ResponseEntity.ok("Réservation confirmée avec succès");
+    }
+
+
 
 }

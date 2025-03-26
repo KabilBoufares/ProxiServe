@@ -55,7 +55,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Routes accessibles sans authentification
                 .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/services/artisan/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
+
+                
                 .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT") // Corrigé
+                .requestMatchers(HttpMethod.GET, "/api/services/search/advanced").permitAll()
+                // Artisans peuvent confirmer une réservation
+                .requestMatchers(HttpMethod.PUT, "/api/bookings/**/confirm").hasAuthority("ROLE_ARTISAN")
+
 
                 .requestMatchers(HttpMethod.POST, "/api/bookings").hasAuthority("ROLE_CLIENT")
                 .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").hasAuthority("ROLE_CLIENT")
