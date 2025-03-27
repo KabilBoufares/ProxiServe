@@ -60,8 +60,21 @@ public class SecurityConfig {
                 
                 .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT") // Corrigé
                 .requestMatchers(HttpMethod.GET, "/api/services/search/advanced").permitAll()
-                // Artisans peuvent confirmer une réservation
-                .requestMatchers(HttpMethod.PUT, "/api/bookings/**/confirm").hasAuthority("ROLE_ARTISAN")
+                // Artisans peuvent confirmer, rejecter, mettre completé une réservation
+                .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/confirm").hasAuthority("ROLE_ARTISAN")
+                .requestMatchers(HttpMethod.PUT, "/api/bookings/*/reject").hasAuthority("ROLE_ARTISAN")
+                .requestMatchers(HttpMethod.PUT, "/api/bookings/*/complete").hasAuthority("ROLE_ARTISAN")
+
+
+          
+
+                .requestMatchers(HttpMethod.POST, "/api/payments/create").permitAll()
+                //.requestMatchers(HttpMethod.POST, "/api/payments/create").hasAuthority("ROLE_CLIENT")
+                .requestMatchers("/api/payments/**").permitAll()
+
+
+
+
 
 
                 .requestMatchers(HttpMethod.POST, "/api/bookings").hasAuthority("ROLE_CLIENT")

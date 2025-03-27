@@ -233,6 +233,7 @@ public class BookingController {
     public ResponseEntity<?> confirmBooking(@PathVariable String id,
                                             @AuthenticationPrincipal UserDetails userDetails) {
         logger.info("[PUT] /api/bookings/{}/confirm demandé par {}", id, userDetails.getUsername());
+        System.out.println("[DEBUG] Tentative de confirmation de réservation par : " + userDetails.getUsername());
 
         Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
         if (userOpt.isEmpty()) {
@@ -264,6 +265,72 @@ public class BookingController {
 
         return ResponseEntity.ok("Réservation confirmée avec succès");
     }
+
+    //  Refuser une réservation (par un artisan connecté)
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<?> rejectBooking(@PathVariable String id,
+                                            @AuthenticationPrincipal UserDetails userDetails) {
+        logger.info("[PUT] /api/bookings/{}/reject demandé par {}", id, userDetails.getUsername());
+
+        Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
+        }
+
+        Optional<Artisan> artisanOpt = artisanRepository.findByUserId(userOpt.get().getId());
+        if (artisanOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Artisan non trouvé");
+        }
+
+        Optional<Booking> bookingOpt = bookingRepository.findById(id);
+        if (bookingOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Réservation non trouvée");
+        }
+
+        Booking booking = bookingOpt.get();
+
+        // Vérifie que la réservation concerne un service appartenant à l'artisan connecté
+        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(booking.getServiceId());
+        if (serviceOpt.isEmpty() || !serviceOpt.get().getArtisanId().equals(artisanOpt.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
+        }
+
+        booking.setStatus("REJECTED");
+        bookingRepository.save(booking);
+
+        logger.info("Réservation {} rejetée par l'artisan {}", id, artisanOpt.get().getId());
+
+        return ResponseEntity.ok("Réservation rejetée avec succès");
+    }
+
+    //  Marquer une réservation comme terminée (par un artisan connecté)
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<?> completeBooking(@PathVariable String id,
+                                            @AuthenticationPrincipal UserDetails userDetails) {
+        logger.info("[PUT] /api/bookings/{}/complete demandé par {}", id, userDetails.getUsername());
+
+        Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
+        if (userOpt.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
+
+        Optional<Artisan> artisanOpt = artisanRepository.findByUserId(userOpt.get().getId());
+        if (artisanOpt.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Artisan non trouvé");
+
+        Optional<Booking> bookingOpt = bookingRepository.findById(id);
+        if (bookingOpt.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Réservation non trouvée");
+
+        Booking booking = bookingOpt.get();
+        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(booking.getServiceId());
+        if (serviceOpt.isEmpty() || !serviceOpt.get().getArtisanId().equals(artisanOpt.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
+        }
+
+        booking.setStatus("COMPLETED");
+        bookingRepository.save(booking);
+
+        logger.info("Réservation {} marquée comme terminée par l'artisan {}", id, artisanOpt.get().getId());
+        return ResponseEntity.ok("Réservation terminée avec succès");
+    }
+
 
 
 
