@@ -2,13 +2,16 @@ package com.proxiserve.service;
 
 import org.springframework.data.geo.Point;
 import org.springframework.data.geo.Metrics;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.geo.Distance;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.proxiserve.model.Artisan;
+import com.proxiserve.model.Review;
 import com.proxiserve.repository.ArtisanRepository;
+import com.proxiserve.repository.ReviewRepository;
 
 import java.util.List;
 
@@ -25,10 +28,14 @@ public class ArtisanService {
      * Constructeur avec injection de dépendances.
      * @param artisanRepository Référentiel des artisans.
      */
-    public ArtisanService(ArtisanRepository artisanRepository) {
-        this.artisanRepository = artisanRepository;
-    }
+    @Autowired
+    private ReviewRepository reviewRepository;
 
+    public ArtisanService(ArtisanRepository artisanRepository, ReviewRepository reviewRepository) {
+        this.artisanRepository = artisanRepository;
+        this.reviewRepository = reviewRepository;
+    }
+    
     /**
      * Recherche des artisans à proximité d'une localisation donnée.
      * @param latitude  Latitude du point de référence.
@@ -65,4 +72,20 @@ public class ArtisanService {
 
         return artisans;
     }
+
+
+
+    
+
+    
+
+    public double calculateAverageRating(String artisanId) {
+        List<Review> reviews = reviewRepository.findByArtisanId(artisanId);
+        double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
+        logger.debug(" Note moyenne calculée pour artisan {} : {} ({} avis)", artisanId, avg, reviews.size());
+        return avg;
+    }
+    
+    
+
 }

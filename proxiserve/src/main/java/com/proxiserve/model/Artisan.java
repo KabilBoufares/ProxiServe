@@ -38,6 +38,12 @@ public class Artisan {
     @NotBlank(message = "L'ID utilisateur ne peut pas être vide")
     private String userId;
 
+    /** Numéro de téléphone de l'artisan */
+    @NotBlank(message = "Le numéro de téléphone est requis")
+    private String phoneNumber;
+
+    
+
     /** Profession de l'artisan */
     @NotBlank(message = "La profession est requise")
     private String profession;
@@ -50,8 +56,7 @@ public class Artisan {
     @Size(min = 1, message = "L'artisan doit proposer au moins un service")
     private List<String> serviceCategories;
 
-    /** Liste des avis laissés par les clients */
-    private List<Review> reviews;
+
 
     /** Localisation géographique pour la recherche de proximité */
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
@@ -61,13 +66,8 @@ public class Artisan {
     @CreatedDate
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    /**
-     * Calcule dynamiquement la note moyenne des avis de l'artisan.
-     * @return Moyenne des notes ou 0.0 si aucun avis n'est disponible.
-     */
-    public double getRating() {
-        return (reviews != null && !reviews.isEmpty()) 
-            ? reviews.stream().mapToDouble(Review::getRating).average().orElse(0.0) 
-            : 0.0;
-    }
+    @org.springframework.data.annotation.Transient
+    private Double averageRating;
+
+   
 }

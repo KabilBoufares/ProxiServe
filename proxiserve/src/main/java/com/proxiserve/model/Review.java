@@ -28,13 +28,19 @@ public class Review {
     private String id;
 
     /** Identifiant de l'utilisateur ayant laissé l'avis */
-    @NotBlank(message = "L'ID de l'utilisateur est requis")
+ 
     private String userId;
 
     /** Identifiant de l'artisan évalué */
     @NotBlank(message = "L'ID de l'artisan est requis")
     @Indexed // Accélère les recherches d'avis pour un artisan
     private String artisanId;
+
+    /** Identifiant de la réservation associée à l'avis */
+    @NotBlank(message = "L'ID de la réservation est requis")
+    @Indexed // Accélère les recherches d'avis pour une réservation
+    private String bookingId;
+
 
     /** Note attribuée à l'artisan (entre 1 et 5) */
     @Min(1)

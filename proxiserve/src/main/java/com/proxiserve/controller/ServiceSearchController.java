@@ -4,6 +4,7 @@ import com.proxiserve.model.Artisan;
 import com.proxiserve.model.ServiceEntity;
 import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.ServiceRepository;
+import com.proxiserve.service.ArtisanService;
 
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +19,16 @@ public class ServiceSearchController {
 
     private final ServiceRepository serviceRepository;
     private final ArtisanRepository artisanRepository;
+    
 
-    public ServiceSearchController(ServiceRepository serviceRepository, ArtisanRepository artisanRepository) {
+    private final ArtisanService artisanService;
+
+    public ServiceSearchController(ServiceRepository serviceRepository, ArtisanRepository artisanRepository, ArtisanService artisanService) {
         this.serviceRepository = serviceRepository;
         this.artisanRepository = artisanRepository;
+        this.artisanService = artisanService;
     }
+    
 
     @GetMapping("/advanced")
     public ResponseEntity<List<Map<String, Object>>> advancedSearch(
@@ -56,7 +62,9 @@ public class ServiceSearchController {
                     item.put("price", service.getPrice());
                     item.put("artisanId", service.getArtisanId());
                     item.put("distanceKm", Math.round(distance * 10.0) / 10.0);
-                    item.put("rating", artisan.getRating());
+                    double rating = artisanService.calculateAverageRating(artisan.getId());
+                    item.put("rating", rating);
+                
                     results.add(item);
                 }
             }

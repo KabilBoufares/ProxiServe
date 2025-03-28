@@ -12,9 +12,12 @@ import com.proxiserve.repository.ServiceRepository;
 import com.proxiserve.repository.ArtisanRepository;
 
 import com.proxiserve.repository.UserRepository;
+import com.proxiserve.service.MailService;
+
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,6 +39,9 @@ public class BookingController {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final ArtisanRepository artisanRepository;
+    @Autowired
+    private MailService mailService;
+
 
 
     public BookingController(BookingRepository bookingRepository,
@@ -81,6 +87,39 @@ public class BookingController {
         bookingRequest.setClientId(clientOpt.get().getId());
         bookingRequest.setCreatedAt(LocalDateTime.now());
         bookingRequest.setStatus("PENDING");
+
+        // Récupérer les infos de l'artisan concerné
+        Optional<Artisan> artisanOpt = artisanRepository.findById(bookingRequest.getArtisanId());
+        artisanOpt.ifPresent(artisan -> {
+            String artisanEmail = artisan.getEmail();
+            String message = String.format("""
+                    Bonjour %s,
+
+                    Vous avez reçu une nouvelle réservation de la part d'un client.
+
+                    📅 Date : %s
+                    🛠️ Service : %s
+                    
+
+                    Connectez-vous à votre compte pour confirmer ou rejeter cette réservation.
+
+                    -- 
+                    L'équipe Proxiserve
+                    """,
+                    artisan.getProfession(),
+                    bookingRequest.getBookingDate(),
+                    bookingRequest.getServiceId()
+                    //bookingRequest.getLocation()
+            );
+
+            mailService.sendEmail(
+                    artisanEmail,
+                    "📢 Nouvelle réservation reçue !",
+                    message
+            );
+        });
+
+
 
         Booking saved = bookingRepository.save(bookingRequest);
         logger.info("Réservation créée avec ID : {}", saved.getId());

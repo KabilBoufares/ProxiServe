@@ -64,6 +64,13 @@ public class ArtisanController {
             return ResponseEntity.noContent().build();
         }
 
+        // Calcul de la note moyenne pour chaque artisan
+        artisans.forEach(artisan -> {
+                        double rating = artisanService.calculateAverageRating(artisan.getId());
+                                artisan.setAverageRating(rating);
+                        });
+
+
         logger.info(" [INFO] - {} artisans trouvés dans le rayon de {} km autour de (lat={}, long={})", artisans.size(), radius, latitude, longitude);
         return ResponseEntity.ok(artisans);
     }

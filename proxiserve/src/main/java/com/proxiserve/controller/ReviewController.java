@@ -1,45 +1,104 @@
 package com.proxiserve.controller;
 
-import java.util.ArrayList;
-
-import java.util.Optional;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.proxiserve.model.Artisan;
 import com.proxiserve.model.Review;
-import com.proxiserve.repository.ArtisanRepository;
+import com.proxiserve.repository.ReviewRepository;
+import com.proxiserve.repository.UserRepository;
+import com.proxiserve.service.ReviewService;
+import com.proxiserve.model.User;
+import com.proxiserve.dto.RatingStatsView;
+import com.proxiserve.dto.ReviewView;
+
+import jakarta.validation.Valid;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reviews")
 public class ReviewController {
 
-    private final ArtisanRepository artisanRepository;
+    private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
 
-    public ReviewController(ArtisanRepository artisanRepository) {
-        this.artisanRepository = artisanRepository;
+    @Autowired
+    private ReviewService reviewService;
+
+    public ReviewController(ReviewRepository reviewRepository, UserRepository userRepository) {
+        this.reviewRepository = reviewRepository;
+        this.userRepository = userRepository;
     }
 
+    // ✅ Ajouter un avis
     @PostMapping
-    public ResponseEntity<String> addReview(@RequestBody Review review) {
-        Optional<Artisan> artisanOpt = artisanRepository.findById(review.getArtisanId());
-        if (artisanOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("Artisan introuvable");
+    public ResponseEntity<?> addReview(@RequestBody @Valid Review review,
+                                       @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
+
+        review.setUserId(user.getId());
+        review.setCreatedAt(LocalDateTime.now());
+
+        Review saved = reviewRepository.save(review);
+        return ResponseEntity.ok(saved);
+    }
+
+    // ✅ Voir les avis d’un artisan (ReviewView)
+    @GetMapping("/artisan/{artisanId}")
+    public ResponseEntity<List<ReviewView>> getReviewsByArtisan(@PathVariable String artisanId) {
+        List<Review> reviews = reviewRepository.findByArtisanId(artisanId);
+
+        List<ReviewView> reviewViews = reviews.stream().map(review -> {
+            String clientName = userRepository.findById(review.getUserId())
+                    .map(User::getFullName)
+                    .orElse("Client inconnu");
+
+            return new ReviewView(
+                    clientName,
+                    review.getRating(),
+                    review.getComment(),
+                    review.getCreatedAt()
+            );
+        }).toList();
+
+        return ResponseEntity.ok(reviewViews);
+    }
+
+    // ✅ Supprimer un avis (par le client ou l'admin)
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<?> deleteReview(@PathVariable String reviewId,
+                                          @AuthenticationPrincipal UserDetails userDetails) {
+        Optional<Review> reviewOpt = reviewRepository.findById(reviewId);
+        if (reviewOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Avis non trouvé");
         }
 
-        Artisan artisan = artisanOpt.get();
-        if (artisan.getReviews() == null) {
-            artisan.setReviews(new ArrayList<>());
+        Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Utilisateur non trouvé");
         }
 
-        artisan.getReviews().add(review);
-        artisanRepository.save(artisan);
+        Review review = reviewOpt.get();
+        if (!review.getUserId().equals(userOpt.get().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Non autorisé à supprimer cet avis.");
+        }
 
-        return ResponseEntity.ok("Avis ajouté avec succès");
+        reviewRepository.deleteById(reviewId);
+        return ResponseEntity.ok("Avis supprimé avec succès.");
+    }
+
+    // ✅ Statistiques d’un artisan : moyenne, nb d’avis, etc.
+    @GetMapping("/stats/{artisanId}")
+    public ResponseEntity<RatingStatsView> getStatsForArtisan(@PathVariable String artisanId) {
+        RatingStatsView stats = reviewService.getRatingStatsForArtisan(artisanId);
+        return ResponseEntity.ok(stats);
     }
 }
-
-
