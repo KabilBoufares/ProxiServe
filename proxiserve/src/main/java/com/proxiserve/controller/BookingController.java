@@ -1,5 +1,8 @@
 package com.proxiserve.controller;
 
+import com.paypal.api.payments.Payment;
+import com.paypal.api.payments.PaymentExecution;
+import com.paypal.base.rest.PayPalRESTException;
 import com.proxiserve.dto.BookingView;
 import com.proxiserve.model.Artisan;
 import com.proxiserve.model.Booking;
@@ -363,24 +366,25 @@ public class BookingController {
         booking.setStatus("REJECTED");
 
         clientRepository.findById(booking.getClientId()).ifPresent(client -> {
-            String subject = "❌ Réservation rejetée";
-            String body = String.format("""
-                Bonjour %s,
-        
-                Nous sommes désolés, l'artisan %s a rejeté votre réservation.
-        
-                Vous pouvez réserver un autre professionnel via Proxiserve.
-        
-                --
-                L'équipe Proxiserve
-                """,
-                client.getFullName(),
-                artisanOpt.get().getProfession()
-            );
-        
-            mailService.sendEmail(client.getEmail(), subject, body);
+            userRepository.findById(client.getUserId()).ifPresent(user -> {
+                String subject = "❌ Réservation rejetée";
+                String body = String.format("""
+                    Bonjour %s,
+    
+                    Nous sommes désolés, l'artisan %s a rejeté votre réservation.
+    
+                    Vous pouvez réserver un autre professionnel via Proxiserve.
+    
+                    --
+                    L'équipe Proxiserve
+                    """,
+                    client.getFullName(),
+                    artisanOpt.get().getProfession()
+                );
+    
+                mailService.sendEmail(user.getEmail(), subject, body);
+            });
         });
-        
 
 
 
@@ -416,42 +420,64 @@ public class BookingController {
         }
 
         booking.setStatus("COMPLETED");
-
         clientRepository.findById(booking.getClientId()).ifPresent(client -> {
-            String subject = "🎉 Réservation terminée avec succès";
-            String body = String.format("""
-                Bonjour %s,
+            userRepository.findById(client.getUserId()).ifPresent(user -> {
+                String subject = "🎉 Réservation terminée avec succès";
+                String body = String.format("""
+                    Bonjour %s,
         
-                L'artisan %s a indiqué que votre réservation est maintenant terminée.
+                    L'artisan %s a indiqué que votre réservation est maintenant terminée.
         
-                Nous espérons que vous êtes satisfait(e) du service.
+                    Nous espérons que vous êtes satisfait(e) du service.
         
-                N'hésitez pas à laisser un avis ⭐⭐⭐⭐⭐ !
+                    N'hésitez pas à laisser un avis ⭐⭐⭐⭐⭐ !
         
-                --
-                L'équipe Proxiserve
-                """,
-                client.getFullName(),
-                artisanOpt.get().getProfession()
-            );
+                    --
+                    L'équipe Proxiserve
+                    """,
+                    client.getFullName(),
+                    artisanOpt.get().getProfession()
+                );
         
-            mailService.sendEmail(client.getEmail(), subject, body);
+                mailService.sendEmail(user.getEmail(), subject, body);
+            });
         });
         
-
-
-
-
-
-
-
-
-
         bookingRepository.save(booking);
 
         logger.info("Réservation {} marquée comme terminée par l'artisan {}", id, artisanOpt.get().getId());
         return ResponseEntity.ok("Réservation terminée avec succès");
     }
+
+
+
+    @GetMapping("/success")
+    public ResponseEntity<?> successPayment(@RequestParam("paymentId") String paymentId,
+                                            @RequestParam("PayerID") String payerId,
+                                            @RequestParam("bookingId") String bookingId) {
+        try {
+            Payment payment = Payment.get(apiContext, paymentId);
+            PaymentExecution paymentExecution = new PaymentExecution();
+            paymentExecution.setPayerId(payerId);
+            Payment executedPayment = payment.execute(apiContext, paymentExecution);
+
+            // 🔄 Mise à jour de la réservation
+            Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
+            bookingOpt.ifPresent(booking -> {
+                booking.setPaymentStatus("PAID");
+                booking.setPaymentMethod("paypal");
+                booking.setPaymentCompleted(true);
+                bookingRepository.save(booking);
+            });
+
+            return ResponseEntity.ok("Paiement effectué avec succès : " + executedPayment.getId());
+
+        } catch (PayPalRESTException e) {
+            return ResponseEntity.badRequest().body("Erreur lors de l’exécution du paiement : " + e.getMessage());
+        }
+    }
+
+    
 
 
 

@@ -15,6 +15,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/artisans")
+
 public class ArtisanController {
 
     private static final Logger logger = LoggerFactory.getLogger(ArtisanController.class);

@@ -25,5 +25,9 @@ public class Booking {
 
     private LocalDateTime bookingDate;   // Date à laquelle le service est demandé
     private String status;               // Status : PENDING, CONFIRMED, CANCELLED, COMPLETED
+    private String paymentStatus = "UNPAID"; // UNPAID ou PAID
+    private String paymentMethod;            // paypal, cash, stripe...
+    private boolean paymentCompleted = false;
+
     private LocalDateTime createdAt = LocalDateTime.now(); // Date de création
 }
