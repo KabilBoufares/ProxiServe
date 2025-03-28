@@ -298,6 +298,33 @@ public class BookingController {
         }
 
         booking.setStatus("CONFIRMED");
+
+        // Notification au client
+        clientRepository.findById(booking.getClientId()).ifPresent(client -> {
+            String subject = "✅ Votre réservation a été confirmée !";
+            String body = String.format("""
+                Bonjour %s,
+
+                L'artisan %s a confirmé votre réservation prévue pour le %s.
+
+                Merci pour votre confiance.
+
+                --
+                L'équipe Proxiserve
+                """,
+                client.getFullName(),
+                artisanOpt.get().getProfession(),
+                booking.getBookingDate()
+            );
+
+            mailService.sendEmail(client.getEmail(), subject, body);
+        });
+
+
+
+
+
+        
         bookingRepository.save(booking);
 
         logger.info("Réservation {} confirmée par l'artisan {}", id, artisanOpt.get().getId());
@@ -333,8 +360,33 @@ public class BookingController {
         if (serviceOpt.isEmpty() || !serviceOpt.get().getArtisanId().equals(artisanOpt.get().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
         }
-
         booking.setStatus("REJECTED");
+
+        clientRepository.findById(booking.getClientId()).ifPresent(client -> {
+            String subject = "❌ Réservation rejetée";
+            String body = String.format("""
+                Bonjour %s,
+        
+                Nous sommes désolés, l'artisan %s a rejeté votre réservation.
+        
+                Vous pouvez réserver un autre professionnel via Proxiserve.
+        
+                --
+                L'équipe Proxiserve
+                """,
+                client.getFullName(),
+                artisanOpt.get().getProfession()
+            );
+        
+            mailService.sendEmail(client.getEmail(), subject, body);
+        });
+        
+
+
+
+
+
+        
         bookingRepository.save(booking);
 
         logger.info("Réservation {} rejetée par l'artisan {}", id, artisanOpt.get().getId());
@@ -364,6 +416,37 @@ public class BookingController {
         }
 
         booking.setStatus("COMPLETED");
+
+        clientRepository.findById(booking.getClientId()).ifPresent(client -> {
+            String subject = "🎉 Réservation terminée avec succès";
+            String body = String.format("""
+                Bonjour %s,
+        
+                L'artisan %s a indiqué que votre réservation est maintenant terminée.
+        
+                Nous espérons que vous êtes satisfait(e) du service.
+        
+                N'hésitez pas à laisser un avis ⭐⭐⭐⭐⭐ !
+        
+                --
+                L'équipe Proxiserve
+                """,
+                client.getFullName(),
+                artisanOpt.get().getProfession()
+            );
+        
+            mailService.sendEmail(client.getEmail(), subject, body);
+        });
+        
+
+
+
+
+
+
+
+
+
         bookingRepository.save(booking);
 
         logger.info("Réservation {} marquée comme terminée par l'artisan {}", id, artisanOpt.get().getId());
