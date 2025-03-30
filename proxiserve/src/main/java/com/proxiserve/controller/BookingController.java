@@ -84,6 +84,17 @@ public class BookingController {
             logger.warn("Service non trouvé avec l'ID : {}", bookingRequest.getServiceId());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Service non trouvé");
         }
+        List<Booking> conflicts = bookingRepository.findByArtisanIdAndBookingDateAndStatus(
+            bookingRequest.getArtisanId(),
+            bookingRequest.getBookingDate(),
+            "CONFIRMED"
+        );
+    
+        if (!conflicts.isEmpty()) {
+            logger.warn("Conflit de réservation détecté pour artisan {} à la date {}", bookingRequest.getArtisanId(), bookingRequest.getBookingDate());
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                                 .body("Cet artisan est déjà réservé à cette date.");
+        }
 
         bookingRequest.setClientId(clientOpt.get().getId());
         bookingRequest.setCreatedAt(LocalDateTime.now());
@@ -259,6 +270,52 @@ public class BookingController {
         if (!booking.getClientId().equals(clientOpt.get().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Réservation non autorisée");
         }
+
+        if (!"PENDING".equalsIgnoreCase(booking.getStatus())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                                 .body("Seules les réservations en attente peuvent être annulées.");
+        }
+        //  Notification à l'artisan
+
+        artisanRepository.findById(booking.getArtisanId()).ifPresent(artisan -> {
+            String subject = "❌ Réservation annulée par le client";
+            String body = String.format("""
+                Bonjour %s,
+        
+                Le client a annulé la réservation prévue pour le %s.
+        
+                Vous êtes maintenant disponible à ce créneau.
+        
+                --
+                L'équipe Proxiserve
+                """,
+                artisan.getProfession(),
+                booking.getBookingDate()
+            );
+        
+            mailService.sendEmail(artisan.getEmail(), subject, body);
+        });
+
+        //  Notification au client
+        userRepository.findById(clientOpt.get().getUserId()).ifPresent(clientUser -> {
+            String subject = "🔔 Annulation confirmée";
+            String body = String.format("""
+                Bonjour %s,
+    
+                Votre réservation prévue pour le %s a été annulée avec succès.
+    
+                Vous pouvez effectuer une nouvelle réservation à tout moment.
+    
+                --
+                L'équipe Proxiserve
+                """,
+                clientOpt.get().getFullName(),
+                booking.getBookingDate()
+            );
+    
+            mailService.sendEmail(clientUser.getEmail(), subject, body);
+        });
+        
 
         booking.setStatus("CANCELLED");
         bookingRepository.save(booking);
