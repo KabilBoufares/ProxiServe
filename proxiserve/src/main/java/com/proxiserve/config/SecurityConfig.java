@@ -65,12 +65,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/bookings/*/reject").hasAuthority("ROLE_ARTISAN")
                 .requestMatchers(HttpMethod.PUT, "/api/bookings/*/complete").hasAuthority("ROLE_ARTISAN")
 
+                .requestMatchers(HttpMethod.POST, "/api/stripe/create-checkout-session").permitAll()
 
-          
 
                 .requestMatchers(HttpMethod.POST, "/api/payments/create").permitAll()
-                //.requestMatchers(HttpMethod.POST, "/api/payments/create").hasAuthority("ROLE_CLIENT")
+                .requestMatchers("/api/payments/success", "/api/payments/cancel").permitAll()
                 .requestMatchers("/api/payments/**").permitAll()
+        
 
                 // Clients peuvent ajouter, voir et supprimer un avis
                 .requestMatchers(HttpMethod.POST, "/api/reviews").hasAnyAuthority("ROLE_CLIENT", "ROLE_ADMIN")

@@ -26,12 +26,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.authentication.BadCredentialsException;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
@@ -46,16 +48,7 @@ public class AuthController {
     @Autowired
     private LoginAttemptService loginAttemptService;
 
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository,
-                          PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider,
-                          ArtisanRepository artisanRepository, ClientRepository clientRepository) {
-        this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.artisanRepository = artisanRepository;
-        this.clientRepository = clientRepository;
-    }
+
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@RequestBody @Valid SignupRequest request) {

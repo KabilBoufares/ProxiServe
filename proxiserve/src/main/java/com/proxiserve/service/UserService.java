@@ -8,22 +8,20 @@ import org.springframework.transaction.annotation.Transactional;
 import com.proxiserve.model.User;
 import com.proxiserve.repository.UserRepository;
 
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service pour la gestion des utilisateurs (inscription, récupération).
  */
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+  
 
     /**
      * Enregistre un nouvel utilisateur après vérifications.

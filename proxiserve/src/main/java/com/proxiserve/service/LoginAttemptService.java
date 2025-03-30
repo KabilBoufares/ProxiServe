@@ -12,10 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.proxiserve.model.User;
 import com.proxiserve.repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * Service pour gérer les tentatives de connexion et le verrouillage des comptes après plusieurs échecs.
  */
 @Service
+@RequiredArgsConstructor
 public class LoginAttemptService {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginAttemptService.class);
@@ -24,9 +27,7 @@ public class LoginAttemptService {
 
     private final UserRepository userRepository;
 
-    public LoginAttemptService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+   
 
     /**
      * Incrémente le nombre d'échecs de connexion et verrouille le compte si nécessaire.

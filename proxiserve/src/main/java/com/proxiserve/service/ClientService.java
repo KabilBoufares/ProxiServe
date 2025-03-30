@@ -2,6 +2,9 @@ package com.proxiserve.service;
 
 import com.proxiserve.model.Client;
 import com.proxiserve.repository.ClientRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,18 +16,12 @@ import java.util.Optional;
  * Fournit des méthodes pour récupérer, mettre à jour et supprimer des clients.
  */
 @Service
+@RequiredArgsConstructor
 public class ClientService {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientService.class);
     private final ClientRepository clientRepository;
 
-    /**
-     * Injection du repository via le constructeur.
-     * @param clientRepository Repository pour les clients.
-     */
-    public ClientService(ClientRepository clientRepository) {
-        this.clientRepository = clientRepository;
-    }
 
     /**
      * Récupérer tous les clients.

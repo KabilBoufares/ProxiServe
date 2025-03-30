@@ -9,6 +9,7 @@ import com.proxiserve.dto.RatingStatsView;
 import com.proxiserve.dto.ReviewView;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,20 +25,17 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/reviews")
+@RequiredArgsConstructor
 public class ReviewController {
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
 
-    @Autowired
+    
     private ReviewService reviewService;
 
-    public ReviewController(ReviewRepository reviewRepository, UserRepository userRepository) {
-        this.reviewRepository = reviewRepository;
-        this.userRepository = userRepository;
-    }
-
-    // ✅ Ajouter un avis
+   
+    //  Ajouter un avis
     @PostMapping
     public ResponseEntity<?> addReview(@RequestBody @Valid Review review,
                                        @AuthenticationPrincipal UserDetails userDetails) {
@@ -51,7 +49,7 @@ public class ReviewController {
         return ResponseEntity.ok(saved);
     }
 
-    // ✅ Voir les avis d’un artisan (ReviewView)
+    //  Voir les avis d’un artisan (ReviewView)
     @GetMapping("/artisan/{artisanId}")
     public ResponseEntity<List<ReviewView>> getReviewsByArtisan(@PathVariable String artisanId) {
         List<Review> reviews = reviewRepository.findByArtisanId(artisanId);
@@ -72,7 +70,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviewViews);
     }
 
-    // ✅ Supprimer un avis (par le client ou l'admin)
+    //  Supprimer un avis (par le client ou l'admin)
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable String reviewId,
                                           @AuthenticationPrincipal UserDetails userDetails) {
@@ -95,7 +93,7 @@ public class ReviewController {
         return ResponseEntity.ok("Avis supprimé avec succès.");
     }
 
-    // ✅ Statistiques d’un artisan : moyenne, nb d’avis, etc.
+    //  Statistiques d’un artisan : moyenne, nb d’avis, etc.
     @GetMapping("/stats/{artisanId}")
     public ResponseEntity<RatingStatsView> getStatsForArtisan(@PathVariable String artisanId) {
         RatingStatsView stats = reviewService.getRatingStatsForArtisan(artisanId);

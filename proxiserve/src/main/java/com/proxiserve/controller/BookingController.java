@@ -1,8 +1,9 @@
 package com.proxiserve.controller;
 
-import com.paypal.api.payments.Payment;
-import com.paypal.api.payments.PaymentExecution;
-import com.paypal.base.rest.PayPalRESTException;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
 import com.proxiserve.dto.BookingView;
 import com.proxiserve.model.Artisan;
 import com.proxiserve.model.Booking;
@@ -18,21 +19,30 @@ import com.proxiserve.repository.UserRepository;
 import com.proxiserve.service.MailService;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+
 
 @RestController
 @RequestMapping("/api/bookings")
+@RequiredArgsConstructor
 public class BookingController {
 
     private static final Logger logger = LoggerFactory.getLogger(BookingController.class);
@@ -42,22 +52,10 @@ public class BookingController {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final ArtisanRepository artisanRepository;
-    @Autowired
     private MailService mailService;
 
+    
 
-
-    public BookingController(BookingRepository bookingRepository,
-                            ClientRepository clientRepository,
-                            ServiceRepository serviceRepository,
-                            UserRepository userRepository,
-                            ArtisanRepository artisanRepository) {
-        this.bookingRepository = bookingRepository;
-        this.clientRepository = clientRepository;
-        this.serviceRepository = serviceRepository;
-        this.userRepository = userRepository;
-        this.artisanRepository = artisanRepository;
-    }
 
     //  Créer une réservation (par un client connecté)
     @PostMapping
@@ -322,11 +320,6 @@ public class BookingController {
 
             mailService.sendEmail(client.getEmail(), subject, body);
         });
-
-
-
-
-
         
         bookingRepository.save(booking);
 
@@ -451,31 +444,9 @@ public class BookingController {
 
 
 
-    @GetMapping("/success")
-    public ResponseEntity<?> successPayment(@RequestParam("paymentId") String paymentId,
-                                            @RequestParam("PayerID") String payerId,
-                                            @RequestParam("bookingId") String bookingId) {
-        try {
-            Payment payment = Payment.get(apiContext, paymentId);
-            PaymentExecution paymentExecution = new PaymentExecution();
-            paymentExecution.setPayerId(payerId);
-            Payment executedPayment = payment.execute(apiContext, paymentExecution);
 
-            // 🔄 Mise à jour de la réservation
-            Optional<Booking> bookingOpt = bookingRepository.findById(bookingId);
-            bookingOpt.ifPresent(booking -> {
-                booking.setPaymentStatus("PAID");
-                booking.setPaymentMethod("paypal");
-                booking.setPaymentCompleted(true);
-                bookingRepository.save(booking);
-            });
 
-            return ResponseEntity.ok("Paiement effectué avec succès : " + executedPayment.getId());
 
-        } catch (PayPalRESTException e) {
-            return ResponseEntity.badRequest().body("Erreur lors de l’exécution du paiement : " + e.getMessage());
-        }
-    }
 
     
 

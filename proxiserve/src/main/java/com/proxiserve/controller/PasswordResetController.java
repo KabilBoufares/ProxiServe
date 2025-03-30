@@ -4,6 +4,9 @@ import com.proxiserve.model.User;
 import com.proxiserve.repository.UserRepository;
 import com.proxiserve.security.jwt.JwtTokenProvider;
 import com.proxiserve.service.MailService;
+
+import lombok.RequiredArgsConstructor;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,24 +21,18 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class PasswordResetController {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordResetController.class);
-
-    @Autowired
+    
     private UserRepository userRepository;
-
-    @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
     private MailService mailService;
 
     /**
-     * 🔹 **Étape 1** : Demande de réinitialisation de mot de passe.
+     *  **Étape 1** : Demande de réinitialisation de mot de passe.
      * - Vérifie si l'email existe dans la base.
      * - Génère un token temporaire sécurisé (validité : 15 minutes).
      * - Stocke le token en base pour empêcher les réutilisations frauduleuses.
@@ -78,7 +75,7 @@ public class PasswordResetController {
     }
 
     /**
-     * 🔹 **Étape 2** : Réinitialisation du mot de passe.
+     *  **Étape 2** : Réinitialisation du mot de passe.
      * - Vérifie la validité du token et sa non-expiration.
      * - Vérifie la complexité du nouveau mot de passe.
      * - Met à jour le mot de passe de manière sécurisée.

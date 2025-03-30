@@ -8,6 +8,9 @@ import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.BookingRepository;
 import com.proxiserve.repository.ServiceRepository;
 import com.proxiserve.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -15,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.Principal;
 
 @Service
+@RequiredArgsConstructor
 public class BookingService {
 
     private final BookingRepository bookingRepository;
@@ -22,13 +26,6 @@ public class BookingService {
     private final ArtisanRepository artisanRepository;
     private final UserRepository userRepository;
 
-    public BookingService(BookingRepository bookingRepository, ServiceRepository serviceRepository,
-                          ArtisanRepository artisanRepository, UserRepository userRepository) {
-        this.bookingRepository = bookingRepository;
-        this.serviceRepository = serviceRepository;
-        this.artisanRepository = artisanRepository;
-        this.userRepository = userRepository;
-    }
 
     public Booking createBooking(BookingRequest request, Principal principal) {
         String email = principal.getName();

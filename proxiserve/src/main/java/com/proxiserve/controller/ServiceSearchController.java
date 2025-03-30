@@ -6,6 +6,8 @@ import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.ServiceRepository;
 import com.proxiserve.service.ArtisanService;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/services/search")
+@RequiredArgsConstructor
 public class ServiceSearchController {
 
     private final ServiceRepository serviceRepository;
@@ -23,12 +26,7 @@ public class ServiceSearchController {
 
     private final ArtisanService artisanService;
 
-    public ServiceSearchController(ServiceRepository serviceRepository, ArtisanRepository artisanRepository, ArtisanService artisanService) {
-        this.serviceRepository = serviceRepository;
-        this.artisanRepository = artisanRepository;
-        this.artisanService = artisanService;
-    }
-    
+ 
 
     @GetMapping("/advanced")
     public ResponseEntity<List<Map<String, Object>>> advancedSearch(

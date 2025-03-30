@@ -3,6 +3,9 @@ package com.proxiserve.controller;
 import org.springframework.web.bind.annotation.*;
 import com.proxiserve.model.Client;
 import com.proxiserve.service.ClientService;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,18 +19,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/clients")
+@RequiredArgsConstructor
 public class ClientController {
 
     private static final Logger logger = LoggerFactory.getLogger(ClientController.class);
     private final ClientService clientService;
-
-    /**
-     * Injection de dépendance via le constructeur.
-     * @param clientService Service pour gérer les clients.
-     */
-    public ClientController(ClientService clientService) {
-        this.clientService = clientService;
-    }
 
     /**
      * Récupérer tous les clients (accessible uniquement par un administrateur).
