@@ -31,8 +31,8 @@ public class ReviewController {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
 
-    
-    private ReviewService reviewService;
+    @Autowired
+    private final ReviewService reviewService;
 
    
     //  Ajouter un avis
