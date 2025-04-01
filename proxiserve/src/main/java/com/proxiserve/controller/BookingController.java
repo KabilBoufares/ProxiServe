@@ -52,7 +52,7 @@ public class BookingController {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final ArtisanRepository artisanRepository;
-    private MailService mailService;
+    private final MailService mailService;
 
     
 
