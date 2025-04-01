@@ -136,4 +136,14 @@ public class ReviewControllerTest {
                 .andExpect(jsonPath("$.averageRating").value(5.0))
                 .andExpect(jsonPath("$.totalReviews").value(1));
     }
+    @Test
+    void testGetStatsForArtisan_withNoReviews_shouldReturnZeroStats() throws Exception {
+        String emptyArtisan = "artisanEmpty";
+        mockMvc.perform(get("/api/reviews/stats/" + emptyArtisan))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.artisanId").value(emptyArtisan))
+                .andExpect(jsonPath("$.averageRating").value(0.0))
+                .andExpect(jsonPath("$.totalReviews").value(0));
+    }
 }
+

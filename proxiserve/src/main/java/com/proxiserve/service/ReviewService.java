@@ -19,6 +19,7 @@ public class ReviewService {
     private ReviewRepository reviewRepository;
 
     public RatingStatsView getRatingStatsForArtisan(String artisanId) {
+        
         List<Review> reviews = reviewRepository.findByArtisanId(artisanId);
 
         long total = reviews.size();
