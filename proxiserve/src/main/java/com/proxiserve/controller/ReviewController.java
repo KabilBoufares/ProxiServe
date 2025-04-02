@@ -1,17 +1,15 @@
 package com.proxiserve.controller;
 
 import com.proxiserve.model.Review;
-import com.proxiserve.repository.ReviewRepository;
-import com.proxiserve.repository.UserRepository;
-import com.proxiserve.service.ReviewService;
 import com.proxiserve.model.User;
 import com.proxiserve.dto.RatingStatsView;
 import com.proxiserve.dto.ReviewView;
+import com.proxiserve.repository.ReviewRepository;
+import com.proxiserve.repository.UserRepository;
+import com.proxiserve.service.ReviewService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,15 +28,18 @@ public class ReviewController {
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
-
-    @Autowired
     private final ReviewService reviewService;
 
-   
-    //  Ajouter un avis
+    // ✅ Ajouter un avis
     @PostMapping
     public ResponseEntity<?> addReview(@RequestBody @Valid Review review,
                                        @AuthenticationPrincipal UserDetails userDetails) {
+        // Vérifie si un avis existe déjà pour cette réservation
+        if (review.getBookingId() != null && reviewRepository.existsByBookingId(review.getBookingId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Un avis a déjà été laissé pour cette réservation.");
+        }
+
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur non trouvé"));
 
@@ -49,7 +50,7 @@ public class ReviewController {
         return ResponseEntity.ok(saved);
     }
 
-    //  Voir les avis d’un artisan (ReviewView)
+    // ✅ Voir les avis d’un artisan (ReviewView)
     @GetMapping("/artisan/{artisanId}")
     public ResponseEntity<List<ReviewView>> getReviewsByArtisan(@PathVariable String artisanId) {
         List<Review> reviews = reviewRepository.findByArtisanId(artisanId);
@@ -70,7 +71,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviewViews);
     }
 
-    //  Supprimer un avis (par le client ou l'admin)
+    // ✅ Supprimer un avis (par le client ou l'admin)
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<?> deleteReview(@PathVariable String reviewId,
                                           @AuthenticationPrincipal UserDetails userDetails) {
@@ -93,7 +94,7 @@ public class ReviewController {
         return ResponseEntity.ok("Avis supprimé avec succès.");
     }
 
-    //  Statistiques d’un artisan : moyenne, nb d’avis, etc.
+    // ✅ Statistiques d’un artisan : moyenne, nb d’avis, etc.
     @GetMapping("/stats/{artisanId}")
     public ResponseEntity<RatingStatsView> getStatsForArtisan(@PathVariable String artisanId) {
         RatingStatsView stats = reviewService.getRatingStatsForArtisan(artisanId);

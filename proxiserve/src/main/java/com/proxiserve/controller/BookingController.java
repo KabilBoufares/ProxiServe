@@ -121,7 +121,7 @@ public class BookingController {
                     artisan.getProfession(),
                     bookingRequest.getBookingDate(),
                     bookingRequest.getServiceId()
-                    //bookingRequest.getLocation()
+                    
             );
 
             mailService.sendEmail(
@@ -436,10 +436,6 @@ public class BookingController {
             });
         });
 
-
-
-
-
         
         bookingRepository.save(booking);
 
@@ -498,16 +494,5 @@ public class BookingController {
         logger.info("Réservation {} marquée comme terminée par l'artisan {}", id, artisanOpt.get().getId());
         return ResponseEntity.ok("Réservation terminée avec succès");
     }
-
-
-
-
-
-
-
-    
-
-
-
 
 }

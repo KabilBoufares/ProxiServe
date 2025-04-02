@@ -68,6 +68,5 @@ public class Artisan {
 
     @org.springframework.data.annotation.Transient
     private Double averageRating;
-
-   
+    
 }

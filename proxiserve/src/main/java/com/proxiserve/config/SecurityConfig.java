@@ -3,6 +3,10 @@ package com.proxiserve.config;
 import com.proxiserve.security.CustomUserDetailsService;
 import com.proxiserve.security.jwt.JwtAuthenticationFilter;
 import com.proxiserve.security.jwt.JwtTokenProvider;
+
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
 import org.apache.catalina.connector.Connector;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
@@ -25,21 +29,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
  */
 @EnableMethodSecurity(prePostEnabled = true)
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService userDetailsService;
-
-    /**
-     * Constructeur avec injection de dépendances
-     * @param jwtTokenProvider fournisseur de tokens JWT
-     * @param userDetailsService service de gestion des utilisateurs
-     */
-    public SecurityConfig(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService userDetailsService) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userDetailsService = userDetailsService;
-    }
-
+    
     /**
      * Configuration de la sécurité Spring Boot
      * @param http configuration de sécurité HTTP
@@ -53,53 +48,52 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Routes accessibles sans authentification
-                .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/services/artisan/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
+            // Routes HTML publiques (IMPORTANT)
+            .requestMatchers(
+                "/login", "/signup.html", "/forgot-password.html",
+                "/css/**", "/js/**", "/images/**", "/favicon.ico"
+            ).permitAll()
 
-                
-                .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT") // Corrigé
-                .requestMatchers(HttpMethod.GET, "/api/services/search/advanced").permitAll()
-                // Artisans peuvent confirmer, rejecter, mettre completé une réservation
-                .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/confirm").hasAuthority("ROLE_ARTISAN")
-                .requestMatchers(HttpMethod.PUT, "/api/bookings/*/reject").hasAuthority("ROLE_ARTISAN")
-                .requestMatchers(HttpMethod.PUT, "/api/bookings/*/complete").hasAuthority("ROLE_ARTISAN")
+            // API auth
+            .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
 
-                .requestMatchers(HttpMethod.POST, "/api/stripe/create-checkout-session").permitAll()
+            // Services publics
+            .requestMatchers(HttpMethod.GET, "/api/services/search/advanced").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/payments/create").permitAll()
+            .requestMatchers("/api/payments/success", "/api/payments/cancel", "/api/payments/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/stripe/create-checkout-session").permitAll()
 
+            // Artisan visible par tous les rôles
+            .requestMatchers(HttpMethod.GET, "/api/services/artisan/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
+            .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT")
+            .requestMatchers(HttpMethod.GET, "/api/artisans").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
 
-                .requestMatchers(HttpMethod.POST, "/api/payments/create").permitAll()
-                .requestMatchers("/api/payments/success", "/api/payments/cancel").permitAll()
-                .requestMatchers("/api/payments/**").permitAll()
-        
+            // Reviews
+            .requestMatchers(HttpMethod.POST, "/api/reviews").hasAnyAuthority("ROLE_CLIENT", "ROLE_ADMIN")
+            .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
+            .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasAnyAuthority("ROLE_CLIENT", "ROLE_ADMIN")
+            .requestMatchers(HttpMethod.GET, "/api/reviews/stats/**").hasAnyAuthority("ROLE_CLIENT", "ROLE_ADMIN", "ROLE_ARTISAN")
 
-                // Clients peuvent ajouter, voir et supprimer un avis
-                .requestMatchers(HttpMethod.POST, "/api/reviews").hasAnyAuthority("ROLE_CLIENT", "ROLE_ADMIN")
-                .requestMatchers(HttpMethod.GET, "/api/reviews/**").permitAll()
-                .requestMatchers(HttpMethod.DELETE, "/api/reviews/**").hasAnyAuthority("ROLE_CLIENT", "ROLE_ADMIN")
+            // Bookings
+            .requestMatchers(HttpMethod.POST, "/api/bookings").hasAuthority("ROLE_CLIENT")
+            .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").hasAuthority("ROLE_CLIENT")
+            .requestMatchers(HttpMethod.PUT, "/api/bookings/{id}/confirm").hasAuthority("ROLE_ARTISAN")
+            .requestMatchers(HttpMethod.PUT, "/api/bookings/*/reject").hasAuthority("ROLE_ARTISAN")
+            .requestMatchers(HttpMethod.PUT, "/api/bookings/*/complete").hasAuthority("ROLE_ARTISAN")
 
-                .requestMatchers(HttpMethod.GET, "/api/reviews/stats/**").hasAnyAuthority("ROLE_CLIENT", "ROLE_ADMIN", "ROLE_ARTISAN")
+            // Services
+            .requestMatchers(HttpMethod.POST, "/api/services").hasAuthority("ROLE_ARTISAN")
 
+            // Admins
+            .requestMatchers(HttpMethod.GET, "/api/admin/dashboard").hasAuthority("ROLE_ADMIN")
+            .requestMatchers(HttpMethod.GET, "/api/clients").hasAuthority("ROLE_ADMIN") 
+            .requestMatchers(HttpMethod.GET, "/api/artisans").hasAuthority("ROLE_ADMIN")
 
-                .requestMatchers(HttpMethod.POST, "/api/bookings").hasAuthority("ROLE_CLIENT")
-                .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").hasAuthority("ROLE_CLIENT")
+            // Le reste
+            .anyRequest().authenticated()
+        )
 
-                .requestMatchers(HttpMethod.POST, "/api/services").hasAuthority("ROLE_ARTISAN")
-                // Admins peuvent voir le dashboard
-                .requestMatchers(HttpMethod.GET, "/api/admin/dashboard").hasAuthority("ROLE_ADMIN")
-                //  Admins peuvent voir les clients
-                .requestMatchers(HttpMethod.GET, "/api/clients").hasAuthority("ROLE_ADMIN") 
-                //  Admins peuvent voir les artisans
-                .requestMatchers(HttpMethod.GET, "/api/artisans").hasAuthority("ROLE_ADMIN")
-                
-    
-                // Clients et Artisans peuvent voir les artisans
-                .requestMatchers(HttpMethod.GET, "/api/artisans").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
-                
-
-                // Toute autre requête nécessite une authentification
-                .anyRequest().authenticated()
-            )
+            
             .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService), 
                             UsernamePasswordAuthenticationFilter.class);
     

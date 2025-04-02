@@ -145,5 +145,22 @@ public class ReviewControllerTest {
                 .andExpect(jsonPath("$.averageRating").value(0.0))
                 .andExpect(jsonPath("$.totalReviews").value(0));
     }
+    @Test
+    void testAddReview_alreadyExistsForBooking_shouldReturn400() throws Exception {
+        Review duplicate = new Review();
+        duplicate.setArtisanId(artisanId);
+        duplicate.setBookingId(bookingId); // <-- Même bookingId que dans @BeforeEach
+        duplicate.setRating(3);
+        duplicate.setComment("Doublon d'avis");
+
+        mockMvc.perform(post("/api/reviews")
+                .header("Authorization", "Bearer " + jwtTokenClient)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(duplicate)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Un avis a déjà été laissé pour cette réservation."));
+
+    }
+
 }
 

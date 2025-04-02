@@ -73,12 +73,6 @@ public class ArtisanService {
         return artisans;
     }
 
-
-
-    
-
-    
-
     public double calculateAverageRating(String artisanId) {
         List<Review> reviews = reviewRepository.findByArtisanId(artisanId);
         double avg = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
