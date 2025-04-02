@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Proxiserve - Sign Up</title>
+  <link rel="stylesheet" th:href="@{/css/login.css}" />
+  <link rel="stylesheet" th:href="@{/css/signup.css}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="left-section">
+      <nav>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Help</a></li>
+        </ul>
+      </nav>
+      <div class="welcome-message">
+        <h1>Join Proxiserve and discover a world of opportunities.</h1>
+      </div>
+      <div class="header-background" id="headerBackground"></div>
+      <div class="header-overlay"></div>
+    </div>
+
+    <div class="right-section">
+      <div class="login-prompt">
+        Already have an account? <a th:href="@{/login}" class="login-link">Login</a>
+
+      </div>
+      <div class="signup-form">
+        <h2>Create your account</h2>
+        <form id="signupForm">
+          <div class="form-group">
+            <i class="fas fa-user input-icon"></i>
+            <input type="text" id="fullName" placeholder="Full Name" required />
+          </div>
+          <div class="form-group">
+            <i class="fas fa-envelope input-icon"></i>
+            <input type="email" id="email" placeholder="Email" required />
+          </div>
+          <div class="form-group">
+            <i class="fas fa-phone input-icon"></i>
+            <input type="tel" id="phone" placeholder="Phone Number" required />
+          </div>
+          <div class="form-group password-group">
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" id="password" placeholder="Password" required />
+            <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+          </div>
+          <div class="form-group password-group">
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+            <i class="fas fa-eye toggle-password" id="toggleConfirmPassword"></i>
+          </div>
+
+          <div class="form-group">
+            <label for="role" class="role-label">Select your role:</label>
+            <div class="role-selector">
+              <div class="role-option">
+                <input type="radio" id="roleClient" name="role" value="ROLE_CLIENT" required />
+                <label for="roleClient"><i class="fas fa-user-circle"></i> Client</label>
+              </div>
+              <div class="role-option">
+                <input type="radio" id="roleArtisan" name="role" value="ROLE_ARTISAN" required />
+                <label for="roleArtisan"><i class="fas fa-tools"></i> Artisan</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Location button for artisans -->
+          <div class="form-group" id="locationGroup" style="display: none;">
+            <button type="button" onclick="getLocation()" class="get-location-btn">
+              📍 Get my location
+            </button>
+            <input type="hidden" id="latitude" name="latitude" />
+            <input type="hidden" id="longitude" name="longitude" />
+          </div>
+
+          <button type="submit" class="signup-btn">Create Account</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script th:src="@{/js/signup.js}"></script>
+</body>
+</html>

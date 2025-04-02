@@ -250,7 +250,7 @@ nav a:hover {
 
 .password-group i {
     position: absolute;
-    /*right: 1rem;*/
+    right: 1rem;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
@@ -279,6 +279,7 @@ nav a:hover {
 .remember-me input[type="checkbox"] {
     width: 18px;
     height: 18px;
+    
     accent-color: #1a237e;
 }
 

@@ -4,7 +4,7 @@ import com.proxiserve.security.CustomUserDetailsService;
 import com.proxiserve.security.jwt.JwtAuthenticationFilter;
 import com.proxiserve.security.jwt.JwtTokenProvider;
 
-import lombok.NoArgsConstructor;
+
 import lombok.RequiredArgsConstructor;
 
 import org.apache.catalina.connector.Connector;
@@ -50,7 +50,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
             // Routes HTML publiques (IMPORTANT)
             .requestMatchers(
-                "/login", "/signup.html", "/forgot-password.html",
+                "/","/index","/login", "/signup", "/forgot-password.html","dashboard.html","dashboard/**",
                 "/css/**", "/js/**", "/images/**", "/favicon.ico"
             ).permitAll()
 

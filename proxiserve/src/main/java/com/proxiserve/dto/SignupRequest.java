@@ -2,7 +2,6 @@ package com.proxiserve.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -46,8 +45,7 @@ public class SignupRequest {
     private String profession;
     private String companyName;
     private List<String> serviceCategories;
-    @NotNull(message = "Longitude requise pour les artisans")
+    
     private Double latitude;
-    @NotNull(message = "Longitude requise pour les artisans")
     private Double longitude;
 }

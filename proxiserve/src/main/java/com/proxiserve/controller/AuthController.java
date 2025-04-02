@@ -51,23 +51,35 @@ public class AuthController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@RequestBody @Valid SignupRequest request) {
+    public ResponseEntity<?> registerUser(@RequestBody SignupRequest request) {
         logger.info("Tentative d'inscription avec l'email : {}", request.getEmail());
-
+    
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             logger.warn("Inscription échouée : Email déjà utilisé - {}", request.getEmail());
             return ResponseEntity.badRequest().body("Erreur : cet email est déjà utilisé !");
         }
-
+    
         List<String> validRoles = Arrays.asList("ROLE_CLIENT", "ROLE_ARTISAN", "ROLE_ADMIN");
         String role = request.getRole() != null ? request.getRole().toUpperCase() : "ROLE_CLIENT";
-
+    
         if (!validRoles.contains(role)) {
             return ResponseEntity.badRequest().body("Erreur : rôle invalide !");
         }
-
+    
+        // Validation manuelle du mot de passe
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            return ResponseEntity.badRequest().body("Erreur : le mot de passe doit contenir au moins 6 caractères.");
+        }
+    
+        if ("ROLE_ARTISAN".equals(role)) {
+            if (request.getLatitude() == null || request.getLongitude() == null) {
+                logger.warn("Inscription échouée : coordonnées géographiques manquantes pour l'artisan - {}", request.getEmail());
+                return ResponseEntity.badRequest().body("Erreur : latitude et longitude sont requises pour les artisans.");
+            }
+        }
+    
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-
+    
         User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(encodedPassword);
@@ -75,7 +87,7 @@ public class AuthController {
         user.setFullName(request.getFullName() != null ? request.getFullName() : "Inconnu");
         user.setPhoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber() : "N/A");
         userRepository.save(user);
-
+    
         if ("ROLE_CLIENT".equals(role)) {
             Client client = new Client();
             client.setUserId(user.getId());
@@ -83,7 +95,7 @@ public class AuthController {
             client.setPhoneNumber(user.getPhoneNumber());
             clientRepository.save(client);
         }
-
+    
         if ("ROLE_ARTISAN".equals(role)) {
             Artisan artisan = new Artisan();
             artisan.setEmail(user.getEmail());
@@ -92,20 +104,13 @@ public class AuthController {
             artisan.setProfession(request.getProfession() != null ? request.getProfession() : "Non spécifié");
             artisan.setCompanyName(request.getCompanyName() != null ? request.getCompanyName() : "Entreprise inconnue");
             artisan.setServiceCategories(request.getServiceCategories() != null ? request.getServiceCategories() : List.of("Général"));
-
-            Double latitude = request.getLatitude();
-            Double longitude = request.getLongitude();
-            if (latitude == null || longitude == null) {
-                logger.warn("Inscription échouée : coordonnées géographiques manquantes pour l'artisan - {}", request.getEmail());
-                return ResponseEntity.badRequest().body("Erreur : latitude et longitude sont requises pour les artisans.");
-            }
-
-            artisan.setLocation(new GeoJsonPoint(longitude, latitude));
+            artisan.setLocation(new GeoJsonPoint(request.getLongitude(), request.getLatitude()));
             artisanRepository.save(artisan);
         }
-
+    
         return ResponseEntity.ok("Utilisateur enregistré avec succès avec le rôle : " + role);
     }
+    
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody @Valid LoginRequest credentials) {
