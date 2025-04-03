@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,10 +25,10 @@ public class PasswordResetController {
 
     private static final Logger logger = LoggerFactory.getLogger(PasswordResetController.class);
     
-    private UserRepository userRepository;
-    private JwtTokenProvider jwtTokenProvider;
-    private PasswordEncoder passwordEncoder;
-    private MailService mailService;
+    private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final MailService mailService;
 
     /**
      *  **Étape 1** : Demande de réinitialisation de mot de passe.
@@ -64,7 +63,7 @@ public class PasswordResetController {
         userRepository.save(user);
 
         // Envoyer l'email avec le lien de réinitialisation
-        String resetLink = "https://mon-site.com/reset-password?token=" + token;
+        String resetLink = "http://localhost:8080/reset-password?token=" + token;
         String emailContent = "Bonjour,\n\nCliquez sur ce lien pour réinitialiser votre mot de passe :\n" 
                               + resetLink + 
                               "\n\n Ce lien est valable 15 minutes.";
@@ -133,7 +132,8 @@ public class PasswordResetController {
         userRepository.save(user);
 
         logger.info(" Mot de passe mis à jour avec succès pour l'utilisateur : {}", email);
-        return ResponseEntity.ok("Mot de passe mis à jour avec succès !");
+        return ResponseEntity.ok(Map.of("message", "Mot de passe mis à jour avec succès !"));
+
     }
 
     /**
