@@ -92,7 +92,7 @@ public class BookingControllerTest {
         jwtTokenArtisan = jwtTokenProvider.generateToken(artisanAuth);
 
         // Service
-        ServiceEntity service = new ServiceEntity();
+        Services service = new Services();
         service.setTitle("Réparation");
         service.setDescription("Réparation fuite");
         service.setPrice(99.0);

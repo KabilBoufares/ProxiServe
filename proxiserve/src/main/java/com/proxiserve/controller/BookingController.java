@@ -8,7 +8,7 @@ import com.proxiserve.dto.BookingView;
 import com.proxiserve.model.Artisan;
 import com.proxiserve.model.Booking;
 import com.proxiserve.model.Client;
-import com.proxiserve.model.ServiceEntity;
+import com.proxiserve.model.Services;
 import com.proxiserve.model.User;
 import com.proxiserve.repository.BookingRepository;
 import com.proxiserve.repository.ClientRepository;
@@ -79,7 +79,7 @@ public class BookingController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client non trouvé");
         }
 
-        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(bookingRequest.getServiceId());
+        Optional<Services> serviceOpt = serviceRepository.findById(bookingRequest.getServiceId());
         if (serviceOpt.isEmpty()) {
             logger.warn("Service non trouvé avec l'ID : {}", bookingRequest.getServiceId());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Service non trouvé");
@@ -165,7 +165,7 @@ public class BookingController {
                 : bookingRepository.findByClientId(clientId);
 
         List<BookingView> result = bookings.stream().map(booking -> {
-            ServiceEntity service = serviceRepository.findById(booking.getServiceId()).orElse(null);
+            Services service = serviceRepository.findById(booking.getServiceId()).orElse(null);
 
             return new BookingView(
                 booking.getId(),
@@ -204,14 +204,14 @@ public class BookingController {
 
         String artisanId = artisanOpt.get().getId(); //  le vrai ID de l'artisan
 
-        List<ServiceEntity> services = serviceRepository.findByArtisanId(artisanId);
+        List<Services> services = serviceRepository.findByArtisanId(artisanId);
         if (services.isEmpty()) {
             logger.info("Aucun service trouvé pour l'artisan {}", artisanId);
             return ResponseEntity.ok(List.of()); // liste vide mais sans erreur
         }
 
         List<String> serviceIds = services.stream()
-                                        .map(ServiceEntity::getId)
+                                        .map(Services::getId)
                                         .toList();
 
         List<Booking> bookings = bookingRepository.findByServiceIdIn(serviceIds);
@@ -350,7 +350,7 @@ public class BookingController {
         Booking booking = bookingOpt.get();
 
         // Vérifie que la réservation concerne un service appartenant à l'artisan connecté
-        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(booking.getServiceId());
+        Optional<Services> serviceOpt = serviceRepository.findById(booking.getServiceId());
         if (serviceOpt.isEmpty() || !serviceOpt.get().getArtisanId().equals(artisanOpt.get().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
         }
@@ -409,7 +409,7 @@ public class BookingController {
         Booking booking = bookingOpt.get();
 
         // Vérifie que la réservation concerne un service appartenant à l'artisan connecté
-        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(booking.getServiceId());
+        Optional<Services> serviceOpt = serviceRepository.findById(booking.getServiceId());
         if (serviceOpt.isEmpty() || !serviceOpt.get().getArtisanId().equals(artisanOpt.get().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
         }
@@ -460,7 +460,7 @@ public class BookingController {
         if (bookingOpt.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Réservation non trouvée");
 
         Booking booking = bookingOpt.get();
-        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(booking.getServiceId());
+        Optional<Services> serviceOpt = serviceRepository.findById(booking.getServiceId());
         if (serviceOpt.isEmpty() || !serviceOpt.get().getArtisanId().equals(artisanOpt.get().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
         }

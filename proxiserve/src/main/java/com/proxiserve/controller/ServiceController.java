@@ -2,7 +2,7 @@ package com.proxiserve.controller;
 
 import com.proxiserve.dto.ServiceRequest;
 import com.proxiserve.model.Artisan;
-import com.proxiserve.model.ServiceEntity;
+import com.proxiserve.model.Services;
 import com.proxiserve.model.User;
 import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.ServiceRepository;
@@ -37,7 +37,7 @@ public class ServiceController {
         Artisan artisan = artisanRepository.findByEmail(email)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Artisan non trouvé"));
 
-        ServiceEntity service = new ServiceEntity();
+        Services service = new Services();
         service.setTitle(request.getTitle());
         service.setDescription(request.getDescription());
         service.setPrice(request.getPrice());
@@ -51,8 +51,8 @@ public class ServiceController {
     // Récupérer tous les services
 
     @GetMapping
-    public ResponseEntity<List<ServiceEntity>> getAllServices() {
-        List<ServiceEntity> services = serviceRepository.findAll();
+    public ResponseEntity<List<Services>> getAllServices() {
+        List<Services> services = serviceRepository.findAll();
         return ResponseEntity.ok(services);
     }
 
@@ -60,7 +60,7 @@ public class ServiceController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getServiceById(@PathVariable String id) {
-        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(id);
+        Optional<Services> serviceOpt = serviceRepository.findById(id);
         
         if (serviceOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -71,15 +71,15 @@ public class ServiceController {
 }
     // Mettre à jour un service
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateService(@PathVariable String id, @RequestBody ServiceEntity serviceUpdate) {
-        Optional<ServiceEntity> existingServiceOpt = serviceRepository.findById(id);
+    public ResponseEntity<?> updateService(@PathVariable String id, @RequestBody Services serviceUpdate) {
+        Optional<Services> existingServiceOpt = serviceRepository.findById(id);
 
         if (existingServiceOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                                 .body("Service non trouvé avec l'ID : " + id);
         }
 
-        ServiceEntity existingService = existingServiceOpt.get();
+        Services existingService = existingServiceOpt.get();
 
        // Mettre à jour uniquement les champs non-nuls du service envoyé
         if (serviceUpdate.getTitle() != null) {
@@ -106,14 +106,14 @@ public class ServiceController {
             @PathVariable String id,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        Optional<ServiceEntity> serviceOpt = serviceRepository.findById(id);
+        Optional<Services> serviceOpt = serviceRepository.findById(id);
 
         if (serviceOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                                 .body("Service non trouvé avec l'ID : " + id);
         }
 
-    ServiceEntity service = serviceOpt.get();
+    Services service = serviceOpt.get();
 
     String email = userDetails.getUsername();
     Optional<User> userOpt = userRepository.findByEmail(email);
@@ -156,8 +156,8 @@ public class ServiceController {
 
     // Récupérer les services d'un artisan
     @GetMapping("/artisan/{artisanId}")
-    public ResponseEntity<List<ServiceEntity>> getServicesByArtisan(@PathVariable String artisanId) {
-        List<ServiceEntity> services = serviceRepository.findByArtisanId(artisanId);
+    public ResponseEntity<List<Services>> getServicesByArtisan(@PathVariable String artisanId) {
+        List<Services> services = serviceRepository.findByArtisanId(artisanId);
         return ResponseEntity.ok(services);
     }
 

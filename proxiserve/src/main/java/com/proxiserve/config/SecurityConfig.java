@@ -50,7 +50,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
             // Routes HTML publiques (IMPORTANT)
             .requestMatchers(
-                "/","/index","/login", "/signup", "/forgot-password","dashboard.html","dashboard/**","/request-reset-password","/reset-password", 
+                "/","/index","/login", "/signup", "/forgot-password","dashboard.html","dashboard/**","/request-reset-password","/reset-password",
+                "/index-artisan", "/index-artisan.html", 
                 "/api/auth/request-reset-password",
                 "/api/auth/reset-password",      
                 "/css/**", "/js/**", "/images/**", "/favicon.ico"

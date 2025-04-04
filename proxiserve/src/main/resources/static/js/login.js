@@ -101,12 +101,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { token } = await response.json();
                 localStorage.setItem('token', token);
                 errorMessage.style.display = "none";
-                window.location.href = "/dashboard";
-            } else {
-                const errorText = await response.text();
-                errorMessage.textContent = "Erreur de connexion : " + errorText;
-                errorMessage.style.display = "block";
+            
+                // Décodage du token pour rôle
+                const payload = token.split('.')[1];
+                const decoded = JSON.parse(atob(payload));
+                const role = decoded.role || decoded.roles || decoded.authorities || [];
+            
+                const hasRole = (r) => Array.isArray(role) ? role.includes(r) : role === r;
+            
+                if (hasRole("ROLE_ARTISAN")) {
+                    window.location.href = "/index-artisan";
+                } else if (hasRole("ROLE_CLIENT")) {
+                    window.location.href = "/dashboard-client.html";
+                } else {
+                    window.location.href = "/dashboard";
+                }
             }
+            
         } catch (err) {
             errorMessage.textContent = "Erreur réseau : serveur injoignable.";
             errorMessage.style.display = "block";

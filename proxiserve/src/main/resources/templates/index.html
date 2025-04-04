@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Proxiserve - Professional Services</title>
   <link rel="stylesheet" th:href="@{/css/style.css}" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
 </head>
 
 <body>
@@ -24,13 +24,15 @@
     </nav>
     <div class="auth-buttons">
         <button class="btn-outline" onclick="window.location.href = '/login'">Login</button>
-        <button class="btn-solid" onclick="window.location.href = '/signup'">Sign Up</button>        
+        <button class="btn-solid" onclick="window.location.href = '/signup'">Sign Up</button>  
     </div>
   </header>
 
   <main>
-    <section class="hero">
-      <h1>Need improvement or repair?<br>We can help!</h1>
+    <section class="hero" data-aos="fade-up" data-aos-duration="1000">
+      <h1>Need improvement or repair?</h1>
+      <h1>We can help!</h1>
+  
       <div class="benefits">
         <p>Maintenances • Repairs • Improvements</p>
         <div class="checkmarks">
@@ -38,201 +40,189 @@
           <span>✓ 100% Commitment-Free</span>
         </div>
       </div>
+  
       <div class="search-container">
         <div class="search-bar">
           <div class="search-input-wrapper">
             <i class="fas fa-search search-icon"></i>
-            <input type="text" id="searchInput" placeholder="Search..." class="search-input">
+            <input type="text" id="searchInput" placeholder="Search..." class="search-input" />
           </div>
           <div class="divider"></div>
           <div class="location-wrapper">
             <i class="fas fa-map-marker-alt location-icon"></i>
-            <input type="text" placeholder="Location" class="location-input">
+            <input type="text" id="locationInput" placeholder="Location (City or use GPS)" class="location-input" />
           </div>
-          <button class="search-button">Search</button>
-      </div>
-      <div id="suggestions" class="suggestions-dropdown"></div>
-      
-      <div class="scroll-container">
-        <button class="scroll-arrow scroll-left">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <div class="icon-scroll">
-          <div class="icon-wrapper">
-            <div class="icon-item">
-              <i class="fas fa-hammer"></i>
-              <span>Handyman</span>
-            </div>
-            <div class="icon-item">
-              <i class="fas fa-home"></i>
-              <span>Roofing</span>
-            </div>
-            <div class="icon-item">
-              <i class="fas fa-faucet"></i>
-              <span>Plumbing</span>
-            </div>
-            <div class="icon-item">
-              <i class="fas fa-wrench"></i>
-              <span>Repair</span>
-            </div>
-            <div class="icon-item">
-              <i class="fas fa-bath"></i>
-              <span>Bathroom</span>
-            </div>
-            <div class="icon-item">
-              <i class="fas fa-paint-roller"></i>
-              <span>Painting</span>
-            </div>
-          </div>
+          <button class="search-button" id="searchBtn">Search</button>
         </div>
-        <button class="scroll-arrow scroll-right">
-          <i class="fas fa-chevron-right"></i>
-        </button>
+  
+        <!-- Suggestions -->
+        <div id="suggestions" class="suggestions-dropdown"></div>
+  
+        <!-- Coordonnées GPS cachées -->
+        <input type="hidden" id="latitude">
+        <input type="hidden" id="longitude">
+  
+        <!-- Résultats -->
+        <div id="results" class="search-results-container"></div>
+  
+        <!-- Icônes des services -->
+        <div class="scroll-container">
+          <button class="scroll-arrow scroll-left">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <div class="icon-scroll">
+            <div class="icon-wrapper">
+              <div class="icon-item">
+                <i class="fas fa-hammer"></i>
+                <span>Handyman</span>
+              </div>
+              <div class="icon-item">
+                <i class="fas fa-home"></i>
+                <span>Roofing</span>
+              </div>
+              <div class="icon-item">
+                <i class="fas fa-faucet"></i>
+                <span>Plumbing</span>
+              </div>
+              <div class="icon-item">
+                <i class="fas fa-wrench"></i>
+                <span>Repair</span>
+              </div>
+              <div class="icon-item">
+                <i class="fas fa-bath"></i>
+                <span>Bathroom</span>
+              </div>
+              <div class="icon-item">
+                <i class="fas fa-paint-roller"></i>
+                <span>Painting</span>
+              </div>
+            </div>
+          </div>
+          <button class="scroll-arrow scroll-right">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
       </div>
     </section>
-
-    
   </main>
-
-  <div class="search-page" id="searchPage">
-    <div class="search-page-header">
-      <div class="search-container">
-        <i class="fas fa-search"></i>
-        <input type="text" placeholder="Find servicers" />
-        <button class="search-btn">Search</button>
-      </div>
-    </div>
-
-    <div class="workers-grid">
-      <div class="worker-card" data-profession="Carpentry">
-        <div class="worker-image">
-          <img src="https://randomuser.me/api/portraits/men/1.jpg" alt="Worker">
-        </div>
-        <div class="worker-info">
-          <h3>John Smith</h3>
-          <p class="profession">Carpentry</p>
-          <div class="rating">
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star-half-alt"></i>
-            <span>(4.5)</span>
-          </div>
-          <p class="location"><i class="fas fa-location-dot"></i> New York, USA</p>
-          <button class="contact-btn">View Profile</button>
-        </div>
-      </div>
-
-      <div class="worker-card" data-profession="Electrical">
-        <div class="worker-image">
-          <img src="https://randomuser.me/api/portraits/men/2.jpg" alt="Worker">
-        </div>
-        <div class="worker-info">
-          <h3>Mike Wilson</h3>
-          <p class="profession">Electrical</p>
-          <div class="rating">
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="far fa-star"></i>
-            <span>(4.0)</span>
-          </div>
-          <p class="location"><i class="fas fa-location-dot"></i> Berlin, Germany</p>
-          <button class="contact-btn">View Profile</button>
-        </div>
-      </div>
-
-      <div class="worker-card" data-profession="Painting">
-        <div class="worker-image">
-          <img src="https://randomuser.me/api/portraits/women/1.jpg" alt="Worker">
-        </div>
-        <div class="worker-info">
-          <h3>Sarah Johnson</h3>
-          <p class="profession">Painting</p>
-          <div class="rating">
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <span>(5.0)</span>
-          </div>
-          <p class="location"><i class="fas fa-location-dot"></i> London, UK</p>
-          <button class="contact-btn">View Profile</button>
-        </div>
-      </div>
-
-      <div class="worker-card" data-profession="Plumbing">
-        <div class="worker-image">
-          <img src="https://randomuser.me/api/portraits/men/3.jpg" alt="Worker">
-        </div>
-        <div class="worker-info">
-          <h3>David Brown</h3>
-          <p class="profession">Plumbing</p>
-          <div class="rating">
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-            <span>(5.0)</span>
-          </div>
-          <p class="location"><i class="fas fa-location-dot"></i> Paris, France</p>
-          <button class="contact-btn">View Profile</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  
+  
   <div class="wave"></div>
 
-  <section class="how-it-works">
-    <h2>How It Works</h2>
-    <div class="steps-container">
-      <div class="step">
-        <div class="step-number">1</div>
-        <h3>Describe Your Need</h3>
-        <p>Tell us what service you're looking for and your location</p>
+  <section class="how-it-works" data-aos="fade-up" data-aos-duration="1200">
+    <div class="how-it-works-container">
+      <div class="service-image">
+        <img th:src="@{/images/HowItWorks.png}" alt="Professional Service Provider">
       </div>
-      <div class="step">
-        <div class="step-number">2</div>
-        <h3>Get Matched</h3>
-        <p>We'll connect you with qualified local artisans</p>
-      </div>
-      <div class="step">
-        <div class="step-number">3</div>
-        <h3>Compare & Choose</h3>
-        <p>Review quotes and profiles to select your preferred artisan</p>
-      </div>
-      <div class="step">
-        <div class="step-number">4</div>
-        <h3>Job Done</h3>
-        <p>Get your project completed with confidence</p>
+      <div class="steps-content">
+        <h2>How Proxiserve works?</h2>
+        <div class="steps-container">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-text">
+              <h3>Call</h3>
+              <p>anytime 24/7</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-text">
+              <h3>Schedule Service</h3>
+              <p>At your convenience</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-text">
+              <h3>Your request is completed</h3>
+              <p>With satisfaction guaranteed</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="why-choose">
+  <section class="featured-services" data-aos="zoom-in" data-aos-duration="1500">
+    <div class="featured-services-container">
+      <h2>Our Featured Services</h2>
+      <p class="section-subtitle">Discover our most popular home improvement and repair services</p>
+
+      <div class="services-grid">
+        <div class="service-card" data-aos="fade-up" data-aos-delay="100">
+          <div class="service-icon">
+            <i class="fas fa-tools"></i>
+          </div>
+          <h3>Home Repairs</h3>
+          <p>Quick fixes and repairs for all your household needs</p>
+          <ul class="service-features">
+            <li><i class="fas fa-check"></i> Same-day service available</li>
+            <li><i class="fas fa-check"></i> Licensed professionals</li>
+            <li><i class="fas fa-check"></i> 100% satisfaction guarantee</li>
+          </ul>
+        </div>
+
+        <div class="service-card" data-aos="fade-up" data-aos-delay="200">
+          <div class="service-icon">
+            <i class="fas fa-paint-roller"></i>
+          </div>
+          <h3>Painting & Decoration</h3>
+          <p>Transform your space with our expert painting services</p>
+          <ul class="service-features">
+            <li><i class="fas fa-check"></i> Interior & exterior</li>
+            <li><i class="fas fa-check"></i> Color consultation</li>
+            <li><i class="fas fa-check"></i> Premium materials</li>
+          </ul>
+        </div>
+
+        <div class="service-card" data-aos="fade-up" data-aos-delay="300">
+          <div class="service-icon">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h3>Electrical Services</h3>
+          <p>Professional electrical installations and repairs</p>
+          <ul class="service-features">
+            <li><i class="fas fa-check"></i> 24/7 emergency service</li>
+            <li><i class="fas fa-check"></i> Certified electricians</li>
+            <li><i class="fas fa-check"></i> Safety inspections</li>
+          </ul>
+        </div>
+
+        <div class="service-card" data-aos="fade-up" data-aos-delay="400">
+          <div class="service-icon">
+            <i class="fas fa-faucet"></i>
+          </div>
+          <h3>Plumbing Solutions</h3>
+          <p>Complete plumbing services for your home</p>
+          <ul class="service-features">
+            <li><i class="fas fa-check"></i> Emergency repairs</li>
+            <li><i class="fas fa-check"></i> Installation services</li>
+            <li><i class="fas fa-check"></i> Maintenance plans</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="why-choose" data-aos="fade-up" data-aos-duration="1200">
     <h2>Why Choose ProxiServe?</h2>
     <div class="benefits-grid">
-      <div class="benefit-card">
+      <div class="benefit-card" data-aos="fade-up" data-aos-delay="100">
         <div class="benefit-icon">🛡️</div>
         <h3>Verified Professionals</h3>
         <p>All artisans are thoroughly vetted and qualified</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card" data-aos="fade-up" data-aos-delay="200">
         <div class="benefit-icon">⭐</div>
         <h3>Quality Guaranteed</h3>
         <p>Satisfaction guaranteed on every project</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card" data-aos="fade-up" data-aos-delay="300">
         <div class="benefit-icon">💰</div>
         <h3>Competitive Pricing</h3>
         <p>Compare quotes to find the best value</p>
       </div>
-      <div class="benefit-card">
+      <div class="benefit-card" data-aos="fade-up" data-aos-delay="400">
         <div class="benefit-icon">🤝</div>
         <h3>Secure Platform</h3>
         <p>Safe and secure payment processing</p>
@@ -240,7 +230,88 @@
     </div>
   </section>
 
-  <footer class="footer">
+  <section class="reviews" data-aos="fade-up" data-aos-duration="1200">
+    <div class="reviews-container">
+      <h2>Here our original reviews<br>from trusted platform</h2>
+      <img th:src="@{/images/trustpilot.png}"  alt="Trustpilot" class="trustpilot-logo">
+
+      <div class="reviews-slider">
+        <button class="review-arrow review-left">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <div class="review-cards">
+          <div class="review-card" data-aos="fade-left" data-aos-delay="100">
+            <div class="review-content">
+              <p>Roof repairs can be a real headache, but Proxiserve makes it easy! They found me a skilled roofer who
+                fixed my leaky roof in no time. With their craftsmanship and the best materials, my home is now ready to
+                weather any storm.</p>
+            </div>
+            <div class="reviewer-info">
+              <img th:src="@{/images/reviewer1.png}"  alt="Reviewer" class="reviewer-img">
+              <div class="reviewer-details">
+                <h4>Kende Attila</h4>
+                <div class="stars">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="review-card" data-aos="fade-left" data-aos-delay="200">
+            <div class="review-content">
+              <p>I needed an electrician urgently for my home office setup. ProxiServe connected me with a professional
+                who not only fixed the wiring but also suggested energy-efficient solutions. Great service, highly
+                recommend!</p>
+            </div>
+            <div class="reviewer-info">
+              <img th:src="@{/images/reviewer2.png}"  alt="Reviewer" class="reviewer-img">
+              <div class="reviewer-details">
+                <h4>Sarah Johnson</h4>
+                <div class="stars">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="review-card" data-aos="fade-left" data-aos-delay="300">
+            <div class="review-content">
+              <p>Found an amazing plumber through ProxiServe. Quick response, fair pricing, and excellent workmanship.
+                The booking process was smooth, and the service exceeded my expectations. Will definitely use again!</p>
+            </div>
+            <div class="reviewer-info">
+              <img th:src="@{/images/reviewer3.png}"  alt="Reviewer" class="reviewer-img">
+              <div class="reviewer-details">
+                <h4>Michael Chen</h4>
+                <div class="stars">
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                  <i class="fas fa-star"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="review-arrow review-right">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer" data-aos="fade-up" data-aos-duration="1000">
     <div class="footer-content">
       <div class="footer-section">
         <h3>ProxiServe</h3>
@@ -277,7 +348,17 @@
       <p>&copy; 2025 ProxiServe. All rights reserved.</p>
     </div>
   </footer>
+
   <script th:src="@{/js/script.js}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script>
+    AOS.init({
+      once: true, // animations only happen once
+      offset: 100, // offset (in px) from the original trigger point
+      duration: 1000, // values from 0 to 3000, with step 50ms
+      easing: 'ease', // default easing for AOS animations
+    });
+  </script>
 </body>
 
 </html>

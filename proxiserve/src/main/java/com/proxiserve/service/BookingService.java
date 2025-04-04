@@ -1,9 +1,9 @@
 package com.proxiserve.service;
 
 import com.proxiserve.dto.BookingRequest;
-import com.proxiserve.model.Artisan;
+
 import com.proxiserve.model.Booking;
-import com.proxiserve.model.ServiceEntity;
+
 import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.BookingRepository;
 import com.proxiserve.repository.ServiceRepository;

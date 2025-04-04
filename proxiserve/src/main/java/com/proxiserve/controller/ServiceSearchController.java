@@ -1,7 +1,7 @@
 package com.proxiserve.controller;
 
 import com.proxiserve.model.Artisan;
-import com.proxiserve.model.ServiceEntity;
+import com.proxiserve.model.Services;
 import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.ServiceRepository;
 import com.proxiserve.service.ArtisanService;
@@ -26,8 +26,6 @@ public class ServiceSearchController {
 
     private final ArtisanService artisanService;
 
- 
-
     @GetMapping("/advanced")
     public ResponseEntity<List<Map<String, Object>>> advancedSearch(
             @RequestParam(required = false) String query,
@@ -36,23 +34,42 @@ public class ServiceSearchController {
             @RequestParam(defaultValue = "10.0") double radiusKm,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "distance") String sortBy) {
-
-        List<ServiceEntity> services = serviceRepository.findAll();
+            @RequestParam(defaultValue = "distance") String sortBy,
+            @RequestParam(defaultValue = "false") boolean disableDistanceCheck // 🔥 Nouveau paramètre
+    ) {
+    
+        List<Services> services = serviceRepository.findAll();
         List<Map<String, Object>> results = new ArrayList<>();
-
-        for (ServiceEntity service : services) {
+    
+        for (Services service : services) {
             Optional<Artisan> artisanOpt = artisanRepository.findById(service.getArtisanId());
             if (artisanOpt.isPresent()) {
                 Artisan artisan = artisanOpt.get();
                 GeoJsonPoint loc = artisan.getLocation();
-                double distance = haversineDistance(latitude, longitude, loc.getCoordinates().get(1), loc.getCoordinates().get(0));
-
-                boolean matchesQuery = (query == null ||
-                        service.getTitle().toLowerCase().contains(query.toLowerCase()) ||
-                        (service.getDescription() != null && service.getDescription().toLowerCase().contains(query.toLowerCase())));
-
-                if (distance <= radiusKm && matchesQuery) {
+    
+                if (loc == null || loc.getCoordinates().size() < 2) continue;
+    
+                double distance = haversineDistance(latitude, longitude,
+                        loc.getCoordinates().get(1), loc.getCoordinates().get(0));
+    
+                boolean matchesQuery = false;
+                if (query == null || query.isBlank()) {
+                    matchesQuery = true;
+                } else {
+                    String q = query.toLowerCase();
+                    String title = service.getTitle() != null ? service.getTitle().toLowerCase() : "";
+                    String description = service.getDescription() != null ? service.getDescription().toLowerCase() : "";
+                    matchesQuery = title.contains(q) || description.contains(q);
+                }
+    
+                boolean shouldInclude = matchesQuery && (disableDistanceCheck || distance <= radiusKm);
+    
+                System.out.println("[DEBUG] Service: " + service.getTitle() +
+                        " | Match: " + matchesQuery +
+                        " | Distance: " + distance +
+                        " | Included: " + shouldInclude);
+    
+                if (shouldInclude) {
                     Map<String, Object> item = new HashMap<>();
                     item.put("id", service.getId());
                     item.put("title", service.getTitle());
@@ -62,14 +79,14 @@ public class ServiceSearchController {
                     item.put("distanceKm", Math.round(distance * 10.0) / 10.0);
                     double rating = artisanService.calculateAverageRating(artisan.getId());
                     item.put("rating", rating);
-                
+    
                     results.add(item);
                 }
             }
         }
-
+    
         Comparator<Map<String, Object>> comparator;
-
+    
         switch (sortBy) {
             case "price":
                 comparator = Comparator.comparing(s -> (Double) s.get("price"));
@@ -84,19 +101,19 @@ public class ServiceSearchController {
                 comparator = Comparator.comparing(s -> (Double) s.get("distanceKm"));
                 break;
         }
-        
-
+    
         List<Map<String, Object>> sorted = results.stream()
                 .sorted(comparator)
                 .collect(Collectors.toList());
-
+    
         List<Map<String, Object>> paginated = sorted.stream()
                 .skip((long) page * size)
                 .limit(size)
                 .collect(Collectors.toList());
-
+    
         return ResponseEntity.ok(paginated);
     }
+    
 
     private double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371;

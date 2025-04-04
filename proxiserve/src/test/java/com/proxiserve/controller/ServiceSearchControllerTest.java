@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.proxiserve.config.TestSecurityConfig;
 import com.proxiserve.controller.ServiceSearchController;
 import com.proxiserve.model.Artisan;
-import com.proxiserve.model.ServiceEntity;
+import com.proxiserve.model.Services;
 import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.ServiceRepository;
 import com.proxiserve.service.ArtisanService;
@@ -47,12 +47,12 @@ public class ServiceSearchControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private ServiceEntity service;
+    private Services service;
     private Artisan artisan;
 
     @BeforeEach
     void setUp() {
-        service = new ServiceEntity();
+        service = new Services();
         service.setId("service123");
         service.setTitle("Plomberie");
         service.setDescription("Réparation de fuite");
@@ -102,7 +102,7 @@ public class ServiceSearchControllerTest {
 
     @Test
     void testAdvancedSearch_sortByPrice_shouldReturnSortedResults() throws Exception {
-        ServiceEntity service2 = new ServiceEntity("service124", "Electricité", "Installation électrique", 30.0, "artisan123");
+        Services service2 = new Services("service124", "Electricité", "Installation électrique", 30.0, "artisan123");
 
         when(serviceRepository.findAll()).thenReturn(List.of(service, service2));
         when(artisanRepository.findById("artisan123")).thenReturn(java.util.Optional.of(artisan));
@@ -120,7 +120,7 @@ public class ServiceSearchControllerTest {
 
     @Test
     void testAdvancedSearch_pagination_shouldReturnLimitedResults() throws Exception {
-        ServiceEntity service2 = new ServiceEntity("service124", "Electricité", "Installation électrique", 30.0, "artisan123");
+        Services service2 = new Services("service124", "Electricité", "Installation électrique", 30.0, "artisan123");
 
         when(serviceRepository.findAll()).thenReturn(List.of(service, service2));
         when(artisanRepository.findById("artisan123")).thenReturn(java.util.Optional.of(artisan));

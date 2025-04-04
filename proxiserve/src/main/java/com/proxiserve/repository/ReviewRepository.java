@@ -17,5 +17,7 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     List<Review> findByUserId(String userId);
 
     // (optionnel) pour afficher un seul avis si besoin
+
+   
     Optional<Review> findByBookingId(String bookingId);
 }

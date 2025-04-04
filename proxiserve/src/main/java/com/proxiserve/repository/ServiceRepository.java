@@ -1,14 +1,14 @@
 package com.proxiserve.repository;
 
-import com.proxiserve.model.ServiceEntity;
+import com.proxiserve.model.Services;
 
 import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-public interface ServiceRepository extends MongoRepository<ServiceEntity, String> {
+public interface ServiceRepository extends MongoRepository<Services, String> {
 
-    List<ServiceEntity> findByArtisanId(String artisanId);
+    List<Services> findByArtisanId(String artisanId);
 
     
 }

@@ -18,7 +18,7 @@ public class Booking {
     @DBRef 
     private Client client;        // Client ayant effectué la réservation
     @DBRef
-    private ServiceEntity service; // Service réservé
+    private Services service; // Service réservé
     private String clientId;       // ID du client ayant effectué la réservation
     private String artisanId;      // ID de l'artisan concerné
     private String serviceId;      // ID du service réservé
