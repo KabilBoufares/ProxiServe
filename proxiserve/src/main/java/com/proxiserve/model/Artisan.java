@@ -1,6 +1,7 @@
 package com.proxiserve.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
@@ -26,19 +27,21 @@ public class Artisan {
     @Id
     private String id;
 
-    /*Email */
-    @NotBlank(message = "Le nom complet ne peut pas être vide")
-    private String email;
-
     /** Référence à l'utilisateur associé (User) */
     @NotBlank(message = "L'ID utilisateur ne peut pas être vide")
     private String userId;
+
+    /*Email */
+    @NotBlank(message = "Le nom complet ne peut pas être vide")
+    private String email;
 
     /** Numéro de téléphone de l'artisan */
     @NotBlank(message = "Le numéro de téléphone est requis")
     private String phoneNumber;
 
-    
+    private String profilePictureUrl;
+    private String biography;
+    private List<String> skills;
 
     /** Profession de l'artisan */
     @NotBlank(message = "La profession est requise")
@@ -53,6 +56,13 @@ public class Artisan {
     private List<String> serviceCategories;
 
 
+   
+
+    private String workingHoursWeekdays; // ex : "9:00 - 18:00"
+    private String workingHoursSaturday;
+    private String workingHoursSunday;
+
+
 
     /** Localisation géographique pour la recherche de proximité */
     @GeoSpatialIndexed(type = GeoSpatialIndexType.GEO_2DSPHERE)
@@ -64,5 +74,11 @@ public class Artisan {
 
     @org.springframework.data.annotation.Transient
     private Double averageRating;
+
+
+    private List<String> workPhotoUrls = new ArrayList<>();
+
+
+
     
 }

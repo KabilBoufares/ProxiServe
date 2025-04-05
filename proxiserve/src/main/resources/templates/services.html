@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services & Solutions</title>
+    <link rel="stylesheet" th:href="@{/css/services.css}" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <nav class="nav-container">
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for a service...">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        <aside class="filters-sidebar">
+            <div class="filters-header">
+                <h2>Filters</h2>
+                <button class="toggle-btn" id="toggleFilters">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="filter-section">
+                <h3>Minimum Rating</h3>
+                <div class="rating-filter">
+                    <span class="star" data-rating="5">★</span>
+                    <span class="star" data-rating="4">★</span>
+                    <span class="star" data-rating="3">★</span>
+                    <span class="star" data-rating="2">★</span>
+                    <span class="star" data-rating="1">★</span>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Location</h3>
+                <div class="location-filter">
+                    <input type="text" id="locationInput" placeholder="City or region">
+                    <button class="location-btn">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Price Range</h3>
+                <div class="price-range">
+                    <input type="range" id="priceRange" min="0" max="200" value="200">
+                    <div class="price-inputs">
+                        <input type="number" id="minPrice" placeholder="Min">
+                        <span>-</span>
+                        <input type="number" id="maxPrice" placeholder="Max">
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <section class="content-section">
+            <div class="section-header">
+                <h2>Available Services</h2>
+                <div class="view-options">
+                    <button class="view-btn active" data-view="grid">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-btn" data-view="list">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <button class="view-btn" data-view="card">
+                        <i class="fas fa-id-card"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="workers-grid">
+                <!-- Cards will be generated dynamically by JavaScript -->
+            </div>
+
+            <div class="pagination">
+                <button class="page-btn" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="page-numbers">
+                    <span class="active">1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>...</span>
+                    <span>10</span>
+                </div>
+                <button class="page-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-logo">
+                <h2>ProxiServe</h2>
+                <p>Connecting you with trusted local artisans for all your home improvement needs.</p>
+            </div>
+            
+            <div class="footer-contact">
+                <div class="contact-item">
+                    <i class="far fa-envelope"></i>
+                    <span>support@proxiserve.com</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>(555) 123-4567</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-map-pin"></i>
+                    <span>123 Service Street</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-middle">
+            <div class="footer-nav">
+                <a href="#">About Us</a>
+                <a th:src="@{/services}">Services</a>
+                <a href="#">Blog</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="social-links">
+                <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="legal-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookie Policy</a>
+            </div>
+            <p class="copyright">&copy; 2025 ProxiServe. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script th:src="@{/js/services.js}"></script>
+    
+</body>
+</html>

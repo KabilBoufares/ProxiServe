@@ -1,13 +1,22 @@
 package com.proxiserve.controller;
 
 import org.springframework.web.bind.annotation.*;
+
+import com.proxiserve.dto.ArtisanProfileView;
 import com.proxiserve.model.Artisan;
+import com.proxiserve.model.Certification;
+import com.proxiserve.repository.ArtisanRepository;
+import com.proxiserve.repository.CertificationRepository;
 import com.proxiserve.service.ArtisanService;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Contrôleur REST pour gérer les artisans.
@@ -15,19 +24,14 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/artisans")
+@RequiredArgsConstructor
 
 public class ArtisanController {
 
     private static final Logger logger = LoggerFactory.getLogger(ArtisanController.class);
     private final ArtisanService artisanService;
-
-    /**
-     * Injection de dépendance via le constructeur (bonne pratique).
-     * @param artisanService Service permettant de récupérer les artisans
-     */
-    public ArtisanController(ArtisanService artisanService) {
-        this.artisanService = artisanService;
-    }
+     private final ArtisanRepository artisanRepository;
+    private final CertificationRepository certificationRepository;
 
     /**
      * Endpoint sécurisé permettant aux clients de récupérer la liste des artisans proches.
@@ -75,4 +79,93 @@ public class ArtisanController {
         logger.info(" [INFO] - {} artisans trouvés dans le rayon de {} km autour de (lat={}, long={})", artisans.size(), radius, latitude, longitude);
         return ResponseEntity.ok(artisans);
     }
+
+
+    @GetMapping("/{id}/profile")
+    public ResponseEntity<ArtisanProfileView> getArtisanProfile(@PathVariable String id) {
+        Optional<Artisan> artisanOpt = artisanRepository.findById(id);
+        if (artisanOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Artisan artisan = artisanOpt.get();
+        List<Certification> certifications = certificationRepository.findByArtisanId(id);
+
+        ArtisanProfileView profile = new ArtisanProfileView(artisan, certifications);
+        return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping("/{id}/profile")
+    @PreAuthorize("hasAuthority('ROLE_ARTISAN')") // ou check plus fin avec userId
+    public ResponseEntity<?> updateProfile(@PathVariable String id, @RequestBody Artisan updatedData) {
+        Optional<Artisan> artisanOpt = artisanRepository.findById(id);
+        if (artisanOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Artisan artisan = artisanOpt.get();
+
+        // 🎯 Mise à jour des champs
+        artisan.setPhoneNumber(updatedData.getPhoneNumber());
+        artisan.setProfilePictureUrl(updatedData.getProfilePictureUrl());
+        artisan.setBiography(updatedData.getBiography());
+        artisan.setSkills(updatedData.getSkills());
+        artisan.setProfession(updatedData.getProfession());
+        artisan.setCompanyName(updatedData.getCompanyName());
+        artisan.setServiceCategories(updatedData.getServiceCategories());
+        artisan.setWorkingHoursWeekdays(updatedData.getWorkingHoursWeekdays());
+        artisan.setWorkingHoursSaturday(updatedData.getWorkingHoursSaturday());
+        artisan.setWorkingHoursSunday(updatedData.getWorkingHoursSunday());
+        artisan.setWorkPhotoUrls(updatedData.getWorkPhotoUrls());
+
+        if (updatedData.getLocation() != null) {
+            artisan.setLocation(updatedData.getLocation());
+        }
+
+        artisanRepository.save(artisan);
+        return ResponseEntity.ok("Profil mis à jour avec succès.");
+    }
+
+
+    @DeleteMapping("/{id}/photos")
+    @PreAuthorize("hasAuthority('ROLE_ARTISAN')")
+    public ResponseEntity<?> deleteWorkPhoto(@PathVariable String id, @RequestParam String photoUrl) {
+        Optional<Artisan> artisanOpt = artisanRepository.findById(id);
+        if (artisanOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Artisan artisan = artisanOpt.get();
+        List<String> photos = artisan.getWorkPhotoUrls();
+        if (photos.remove(photoUrl)) {
+            artisan.setWorkPhotoUrls(photos);
+            artisanRepository.save(artisan);
+            return ResponseEntity.ok("Photo supprimée.");
+        } else {
+            return ResponseEntity.badRequest().body("Photo introuvable.");
+        }
+    }
+
+
+    @DeleteMapping("/{id}/skills")
+    @PreAuthorize("hasAuthority('ROLE_ARTISAN')")
+    public ResponseEntity<?> deleteSkill(@PathVariable String id, @RequestParam String skill) {
+        Optional<Artisan> artisanOpt = artisanRepository.findById(id);
+        if (artisanOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Artisan artisan = artisanOpt.get();
+        List<String> skills = artisan.getSkills();
+        if (skills.removeIf(s -> s.equalsIgnoreCase(skill))) {
+            artisan.setSkills(skills);
+            artisanRepository.save(artisan);
+            return ResponseEntity.ok("Compétence supprimée.");
+        } else {
+            return ResponseEntity.badRequest().body("Compétence non trouvée.");
+        }
+    }
+
+
+
 }

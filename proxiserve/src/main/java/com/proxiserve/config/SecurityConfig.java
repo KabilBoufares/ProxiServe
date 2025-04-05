@@ -51,7 +51,7 @@ public class SecurityConfig {
             // Routes HTML publiques (IMPORTANT)
             .requestMatchers(
                 "/","/index","/login", "/signup", "/forgot-password","dashboard.html","dashboard/**","/request-reset-password","/reset-password",
-                "/index-artisan", "/index-artisan.html", 
+                "/index-artisan", "/index-artisan.html",  "/services.html", "/services", "/services/**",
                 "/api/auth/request-reset-password",
                 "/api/auth/reset-password",      
                 "/css/**", "/js/**", "/images/**", "/favicon.ico"

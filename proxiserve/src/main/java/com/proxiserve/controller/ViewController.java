@@ -42,5 +42,10 @@ public class ViewController {
     public String redirectToLogin() {
         return "redirect:/login";
     }
+
+    @GetMapping("/services")
+    public String showServicesPage() {
+        return "services"; // correspond à services.html dans /templates
+    }
  
 }
