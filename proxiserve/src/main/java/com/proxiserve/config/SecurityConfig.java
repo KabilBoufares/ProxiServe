@@ -63,6 +63,8 @@ public class SecurityConfig {
 
             .requestMatchers(HttpMethod.GET, "/api/artisans/{id}/profile").permitAll()
             .requestMatchers(HttpMethod.PUT, "/api/artisans/{id}/profile").hasAuthority("ROLE_ARTISAN")
+            .requestMatchers(HttpMethod.POST, "/api/artisans/profile-picture").hasAuthority("ROLE_ARTISAN")
+            .requestMatchers(HttpMethod.POST, "/api/artisans/work-photo").hasAuthority("ROLE_ARTISAN")
 
             .requestMatchers(HttpMethod.POST, "/api/certifications").hasAuthority("ROLE_ARTISAN")
             .requestMatchers(HttpMethod.GET, "/api/certifications/artisan/{id_artisan}").permitAll()
@@ -103,6 +105,9 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.GET, "/api/admin/dashboard").hasAuthority("ROLE_ADMIN")
             .requestMatchers(HttpMethod.GET, "/api/clients").hasAuthority("ROLE_ADMIN") 
             .requestMatchers(HttpMethod.GET, "/api/artisans").hasAuthority("ROLE_ADMIN")
+            
+            .requestMatchers("/api/uploads/**").hasAuthority("ROLE_ARTISAN")
+
 
             // Le reste
             .anyRequest().authenticated()

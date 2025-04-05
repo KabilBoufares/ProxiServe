@@ -1,6 +1,7 @@
 package com.proxiserve.controller;
 
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.proxiserve.dto.ArtisanProfileView;
 import com.proxiserve.model.Artisan;
@@ -8,6 +9,7 @@ import com.proxiserve.model.Certification;
 import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.CertificationRepository;
 import com.proxiserve.service.ArtisanService;
+import com.proxiserve.service.ImageUploadService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,6 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,6 +37,8 @@ public class ArtisanController {
     private final ArtisanService artisanService;
      private final ArtisanRepository artisanRepository;
     private final CertificationRepository certificationRepository;
+    private final ImageUploadService imageUploadService;
+
 
     /**
      * Endpoint sécurisé permettant aux clients de récupérer la liste des artisans proches.
@@ -166,6 +173,55 @@ public class ArtisanController {
         }
     }
 
+    @PostMapping("/profile-picture")
+    @PreAuthorize("hasAuthority('ROLE_ARTISAN')")
+    public ResponseEntity<?> uploadProfilePicture(@RequestParam("file") MultipartFile file, Principal principal) {
+        String email = principal.getName();
+        logger.info("[UPLOAD] - Artisan tente d'uploader une photo de profil : {}", email);
+
+        Optional<Artisan> artisanOpt = artisanRepository.findByEmail(email);
+        if (artisanOpt.isEmpty()) {
+            logger.warn("[ERREUR] - Artisan non trouvé pour l'email : {}", email);
+            return ResponseEntity.badRequest().body("Artisan non trouvé.");
+        }
+
+        Artisan artisan = artisanOpt.get();
+        try {
+            String imageUrl = imageUploadService.uploadImage(file);
+            artisan.setProfilePictureUrl(imageUrl);
+            artisanRepository.save(artisan);
+            logger.info("[SUCCÈS] - Photo de profil mise à jour pour l'artisan {}", artisan.getId());
+            return ResponseEntity.ok(imageUrl);
+        } catch (IOException e) {
+            logger.error("[ERREUR] - Upload échoué pour l'artisan {} : {}", artisan.getId(), e.getMessage());
+            return ResponseEntity.internalServerError().body("Erreur lors de l’upload.");
+        }
+    }
+
+    @PostMapping("/work-photo")
+    @PreAuthorize("hasAuthority('ROLE_ARTISAN')")
+    public ResponseEntity<?> uploadWorkPhoto(@RequestParam("file") MultipartFile file, Principal principal) {
+        String email = principal.getName();
+        logger.info("[UPLOAD] - Artisan tente d'uploader une photo de travail : {}", email);
+
+        Optional<Artisan> artisanOpt = artisanRepository.findByEmail(email);
+        if (artisanOpt.isEmpty()) {
+            logger.warn("[ERREUR] - Artisan non trouvé pour l'email : {}", email);
+            return ResponseEntity.badRequest().body("Artisan non trouvé.");
+        }
+
+        Artisan artisan = artisanOpt.get();
+        try {
+            String imageUrl = imageUploadService.uploadImage(file);
+            artisan.getWorkPhotoUrls().add(imageUrl);
+            artisanRepository.save(artisan);
+            logger.info("[SUCCÈS] - Nouvelle photo de travail ajoutée pour l'artisan {}", artisan.getId());
+            return ResponseEntity.ok(imageUrl);
+        } catch (IOException e) {
+            logger.error("[ERREUR] - Upload échoué pour l'artisan {} : {}", artisan.getId(), e.getMessage());
+            return ResponseEntity.internalServerError().body("Erreur lors de l’upload.");
+        }
+    }
 
 
 }
