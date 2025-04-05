@@ -60,6 +60,18 @@ public class SecurityConfig {
             // API auth
             .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
 
+
+            .requestMatchers(HttpMethod.GET, "/api/artisans/{id}/profile").permitAll()
+            .requestMatchers(HttpMethod.PUT, "/api/artisans/{id}/profile").hasAuthority("ROLE_ARTISAN")
+
+            .requestMatchers(HttpMethod.POST, "/api/certifications").hasAuthority("ROLE_ARTISAN")
+            .requestMatchers(HttpMethod.GET, "/api/certifications/artisan/{id_artisan}").permitAll()
+
+            
+            
+            .requestMatchers(HttpMethod.DELETE, "api/certifications/{id_certification}").hasAuthority("ROLE_ARTISAN")
+            
+
             // Services publics
             .requestMatchers(HttpMethod.GET, "/api/services/search/advanced").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/payments/create").permitAll()

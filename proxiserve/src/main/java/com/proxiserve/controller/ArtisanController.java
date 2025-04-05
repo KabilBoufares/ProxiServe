@@ -105,7 +105,7 @@ public class ArtisanController {
 
         Artisan artisan = artisanOpt.get();
 
-        // 🎯 Mise à jour des champs
+        
         artisan.setPhoneNumber(updatedData.getPhoneNumber());
         artisan.setProfilePictureUrl(updatedData.getProfilePictureUrl());
         artisan.setBiography(updatedData.getBiography());
