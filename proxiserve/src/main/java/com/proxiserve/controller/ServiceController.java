@@ -16,9 +16,15 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 @RestController
 @RequestMapping("/api/services")
@@ -30,10 +36,10 @@ public class ServiceController {
     private final UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity<?> createService(@RequestBody ServiceRequest request, Principal principal) {
+    public ResponseEntity<Services> createService(@RequestBody ServiceRequest request, Principal principal) {
         String email = principal.getName();
         System.out.println("[DEBUG] Principal connecté : " + email);
-        //Debug  Récupération de l'artisan
+
         Artisan artisan = artisanRepository.findByEmail(email)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Artisan non trouvé"));
 
@@ -43,9 +49,9 @@ public class ServiceController {
         service.setPrice(request.getPrice());
         service.setArtisanId(artisan.getId());
 
-        serviceRepository.save(service);
+        Services saved = serviceRepository.save(service);
 
-        return ResponseEntity.ok("Service créé avec succès");
+        return ResponseEntity.ok(saved); // ✅ on retourne l’objet entier (avec l’ID)
     }
 
     // Récupérer tous les services
@@ -160,8 +166,5 @@ public class ServiceController {
         List<Services> services = serviceRepository.findByArtisanId(artisanId);
         return ResponseEntity.ok(services);
     }
-
-
-
-
+ 
 }

@@ -839,7 +839,7 @@ h1 {
 .review-cards {
   display: flex;
   gap: 2rem;
-  overflow-x: hidden;
+  overflow-x: auto;
   scroll-behavior: smooth;
   max-width: 600px;
   position: relative;

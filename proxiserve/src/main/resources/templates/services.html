@@ -150,6 +150,34 @@
     </footer>
 
     <script th:src="@{/js/services.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(window.location.search);
+        const query = params.get('query') || '';
+        const lat = params.get('latitude');
+        const lon = params.get('longitude');
+
+        if (query) document.getElementById('searchInput').value = query;
+        if (params.get('location')) {
+            document.getElementById('locationInput').value = params.get('location');
+        }
+
+        window.filters = window.filters || {};
+        if (lat && lon) {
+            window.filters.lat = parseFloat(lat);
+            window.filters.lon = parseFloat(lon);
+        }
+
+        if (query) window.filters.query = query;
+
+        // 🔁 Démarre la recherche
+        if (typeof fetchServices === 'function') {
+            fetchServices();
+        }
+    });
+
+      </script>
+      
     
 </body>
 </html>

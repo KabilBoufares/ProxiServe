@@ -16,16 +16,24 @@
     </div>
     <nav class="nav">
       <ul class="nav-list">
-        <li><a href="#about">About Us</a></li>
+        <li><a href="#footer">About Us</a></li>
         <li><a href="#services">Services</a></li>
-        <li><a href="#blog">Our Blog</a></li>
-        <li><a href="#contact">Contact</a></li>
+        <li><a href="#Howitworks">How it works</a></li>
+        <li><a href="#footer">Contact</a></li>
       </ul>
     </nav>
+    
     <div class="auth-buttons">
+      <div id="auth-buttons-not-logged">
         <button class="btn-outline" onclick="window.location.href = '/login'">Login</button>
         <button class="btn-solid" onclick="window.location.href = '/signup'">Sign Up</button>  
-    </div>
+      </div>
+      <div id="auth-buttons-logged" style="display: none;">
+        <button class="btn-outline" onclick="logout()">Logout</button>
+      </div>
+    </div>     
+    
+    
   </header>
 
   <main>
@@ -55,8 +63,7 @@
           <button class="search-button" id="searchBtn">Search</button>
         </div>
   
-        <!-- Suggestions -->
-        <div id="suggestions" class="suggestions-dropdown"></div>
+        
   
         <!-- Coordonnées GPS cachées -->
         <input type="hidden" id="latitude">
@@ -109,7 +116,7 @@
   
   <div class="wave"></div>
 
-  <section class="how-it-works" data-aos="fade-up" data-aos-duration="1200">
+  <section class="how-it-works" data-aos="fade-up" data-aos-duration="1200" id="Howitworks">
     <div class="how-it-works-container">
       <div class="service-image">
         <img th:src="@{/images/HowItWorks.png}" alt="Professional Service Provider">
@@ -143,7 +150,7 @@
     </div>
   </section>
 
-  <section class="featured-services" data-aos="zoom-in" data-aos-duration="1500">
+  <section class="featured-services" data-aos="zoom-in" data-aos-duration="1500" id="services">
     <div class="featured-services-container">
       <h2>Our Featured Services</h2>
       <p class="section-subtitle">Discover our most popular home improvement and repair services</p>
@@ -313,7 +320,7 @@
 
   <footer class="footer" data-aos="fade-up" data-aos-duration="1000">
     <div class="footer-content">
-      <div class="footer-section">
+      <div class="footer-section" id="footer">
         <h3>ProxiServe</h3>
         <p>Connecting you with trusted local artisans for all your home improvement needs.</p>
       </div>
@@ -359,6 +366,41 @@
       easing: 'ease', // default easing for AOS animations
     });
   </script>
+  <!-- autres scripts éventuels ici -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("token");
+  
+      if (token) {
+        document.getElementById("auth-buttons-not-logged").style.display = "none";
+        document.getElementById("auth-buttons-logged").style.display = "block";
+      }
+  
+      window.logout = () => {
+        localStorage.removeItem("token");
+        window.location.href = "/index";
+      };
+    });
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchBtn = document.getElementById("searchBtn");
+      if (searchBtn) {
+        searchBtn.addEventListener("click", function () {
+          const query = document.getElementById('searchInput').value.trim();
+          const location = document.getElementById('locationInput').value.trim();
+  
+          const url = new URL(window.location.origin + '/services');
+  
+          if (query) url.searchParams.append('query', query);
+          if (location) url.searchParams.append('location', location);
+  
+          window.location.href = url.toString();
+        });
+      }
+    });
+  </script>
+  
 </body>
-
 </html>
+

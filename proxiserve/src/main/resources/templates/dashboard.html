@@ -1,49 +1,229 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Proxiserve</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <style>
-        body {
-            padding: 50px;
-            background: #f4f4f4;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-        }
-        .btn {
-            margin-right: 10px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Artisan</title>
+    <link rel="stylesheet" href="css/1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container text-center">
-        <h1>Bienvenue sur Proxiserve 🎉</h1>
-        <p class="lead">Vous êtes connecté avec succès.</p>
+    <div class="dashboard">
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="https://placehold.co/100x100" alt="Logo" id="profilePicture">
+                <h2 id="artisanName">Chargement...</h2>
+            </div>
+            <ul class="nav-links">
+                <li data-tab="profile" class="active">
+                    <i class="fas fa-user"></i> Profil
+                </li>
+                <li data-tab="skills">
+                    <i class="fas fa-tools"></i> Compétences
+                </li>
+                <li data-tab="certifications">
+                    <i class="fas fa-certificate"></i> Certifications
+                </li>
+                <li data-tab="photos">
+                    <i class="fas fa-images"></i> Photos
+                </li>
+                <li data-tab="services">
+                    <i class="fas fa-concierge-bell"></i> Services
+                </li>
+                <li data-tab="bookings">
+                    <i class="fas fa-calendar-alt"></i> Réservations
+                </li>
+                <li data-tab="reviews">
+                    <i class="fas fa-star"></i> Avis
+                </li>
+            </ul>
+            <div class="logout">
+                <button id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </button>
+            </div>
+        </nav>
 
-        <button class="btn btn-primary" onclick="showToken()">Voir le token</button>
-        <button class="btn btn-danger" onclick="logout()">Déconnexion</button>
+        <main class="content">
+            <!-- Profil -->
+            <section id="profile" class="tab-content active">
+                <h2>Mon Profil</h2>
+                <form id="profileForm" class="form-grid">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">Téléphone</label>
+                        <input type="tel" id="phoneNumber">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="biography">Biographie</label>
+                        <textarea id="biography" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="profession">Profession</label>
+                        <input type="text" id="profession">
+                    </div>
+                    <div class="form-group">
+                        <label for="companyName">Nom de l'entreprise</label>
+                        <input type="text" id="companyName">
+                    </div>
+                    <div class="form-group">
+                        <label>Photo de profil</label>
+                        <input type="file" id="profilePictureInput" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn-primary full-width">Enregistrer</button>
+                </form>
+            </section>
+
+            <!-- Compétences -->
+            <section id="skills" class="tab-content">
+                <h2>Compétences & Horaires</h2>
+                <div class="skills-container">
+                    <div class="skills-list">
+                        <h3>Mes compétences</h3>
+                        <div id="skillsList" class="tags-container"></div>
+                        <div class="add-skill">
+                            <input type="text" id="newSkill" placeholder="Nouvelle compétence">
+                            <button id="addSkillBtn" class="btn-primary">Ajouter</button>
+                        </div>
+                    </div>
+                    <div class="working-hours">
+                        <h3>Horaires de travail</h3>
+                        <form id="hoursForm">
+                            <div class="form-group">
+                                <label>Semaine</label>
+                                <input type="text" id="workingHoursWeekdays" placeholder="ex: 08:00 - 18:00">
+                            </div>
+                            <div class="form-group">
+                                <label>Samedi</label>
+                                <input type="text" id="workingHoursSaturday" placeholder="ex: 09:00 - 13:00">
+                            </div>
+                            <div class="form-group">
+                                <label>Dimanche</label>
+                                <input type="text" id="workingHoursSunday" placeholder="Fermé">
+                            </div>
+                            <button type="submit" class="btn-primary">Enregistrer</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Certifications -->
+            <section id="certifications" class="tab-content">
+                <h2>Mes Certifications</h2>
+                <div class="certifications-list" id="certificationsList"></div>
+                <button id="addCertificationBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Ajouter une certification
+                </button>
+            </section>
+
+            <!-- Photos -->
+            <section id="photos" class="tab-content">
+                <h2>Photos de mes réalisations</h2>
+                <div class="photos-grid" id="photosGrid"></div>
+                <div class="upload-zone">
+                    <input type="file" id="workPhotoInput" accept="image/*" multiple>
+                    <label for="workPhotoInput">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        Déposer des photos ici
+                    </label>
+                </div>
+            </section>
+
+            <!-- Services -->
+            <section id="services" class="tab-content">
+                <h2>Mes Services</h2>
+                <div class="services-list" id="servicesList"></div>
+                <button id="addServiceBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Ajouter un service
+                </button>
+            </section>
+
+            <!-- Réservations -->
+            <section id="bookings" class="tab-content">
+                <h2>Réservations</h2>
+                <div class="bookings-filters">
+                    <button class="filter active" data-status="all">Tous</button>
+                    <button class="filter" data-status="PENDING">En attente</button>
+                    <button class="filter" data-status="CONFIRMED">Confirmés</button>
+                    <button class="filter" data-status="COMPLETED">Terminés</button>
+                </div>
+                <div class="bookings-list" id="bookingsList"></div>
+            </section>
+
+            <!-- Avis -->
+            <section id="reviews" class="tab-content">
+                <h2>Avis clients</h2>
+                <div class="reviews-stats" id="reviewsStats"></div>
+                <div class="reviews-list" id="reviewsList"></div>
+            </section>
+        </main>
     </div>
 
-    <script>
-        function showToken() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                alert("Token JWT :\n\n" + token);
-            } else {
-                alert("Aucun token trouvé !");
-            }
-        }
+    <!-- Modals -->
+    <div id="certificationModal" class="modal">
+        <div class="modal-content">
+            <h3>Nouvelle Certification</h3>
+            <form id="certificationForm">
+                <div class="form-group">
+                    <label for="certName">Nom</label>
+                    <input type="text" id="certName" required>
+                </div>
+                <div class="form-group">
+                    <label for="certOrganization">Organisation</label>
+                    <input type="text" id="certOrganization" required>
+                </div>
+                <div class="form-group">
+                    <label for="certDate">Date d'obtention</label>
+                    <input type="date" id="certDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="certDescription">Description</label>
+                    <textarea id="certDescription" required></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeModal('certificationModal')">Annuler</button>
+                    <button type="submit" class="btn-primary">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = "/login";
-        }
-    </script>
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <h3>Nouveau Service</h3>
+            <form id="serviceForm">
+                <div class="form-group">
+                    <label for="serviceTitle">Titre</label>
+                    <input type="text" id="serviceTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="serviceDescription">Description</label>
+                    <textarea id="serviceDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="servicePrice">Prix (€)</label>
+                    <input type="number" id="servicePrice" min="0" step="0.01" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-secondary" onclick="closeModal('serviceModal')">Annuler</button>
+                    <button type="submit" class="btn-primary">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/profile.js"></script>
+    <script src="js/skills.js"></script>
+    <script src="js/certifications.js"></script>
+    <script src="js/photos.js"></script>
+    <script src="js/servicesss.js"></script>
+    <script src="js/bookings.js"></script>
+    <script src="js/reviews.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>

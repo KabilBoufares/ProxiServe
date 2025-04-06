@@ -10,6 +10,8 @@ import com.proxiserve.repository.ArtisanRepository;
 import com.proxiserve.repository.CertificationRepository;
 import com.proxiserve.service.ArtisanService;
 import com.proxiserve.service.ImageUploadService;
+import com.proxiserve.repository.UserRepository; // Add UserRepository import
+import com.proxiserve.model.User; // Import the User class
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,8 +38,9 @@ public class ArtisanController {
     private static final Logger logger = LoggerFactory.getLogger(ArtisanController.class);
     private final ArtisanService artisanService;
      private final ArtisanRepository artisanRepository;
-    private final CertificationRepository certificationRepository;
     private final ImageUploadService imageUploadService;
+private final UserRepository userRepository; // Inject UserRepository
+private final CertificationRepository certificationRepository; // Inject CertificationRepository
 
 
     /**
@@ -88,19 +91,55 @@ public class ArtisanController {
     }
 
 
-    @GetMapping("/{id}/profile")
-    public ResponseEntity<ArtisanProfileView> getArtisanProfile(@PathVariable String id) {
-        Optional<Artisan> artisanOpt = artisanRepository.findById(id);
+
+    @GetMapping("/profile")
+    @PreAuthorize("hasAuthority('ROLE_ARTISAN')")
+    public ResponseEntity<Artisan> getAuthenticatedArtisanProfile(Principal principal) {
+        String email = principal.getName(); // email extrait du token JWT
+        Optional<Artisan> artisanOpt = artisanRepository.findByEmail(email);
+
         if (artisanOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(404).body(null);
         }
 
-        Artisan artisan = artisanOpt.get();
-        List<Certification> certifications = certificationRepository.findByArtisanId(id);
-
-        ArtisanProfileView profile = new ArtisanProfileView(artisan, certifications);
-        return ResponseEntity.ok(profile);
+        return ResponseEntity.ok(artisanOpt.get());
     }
+
+
+    @GetMapping("/{id}/profile")
+public ResponseEntity<ArtisanProfileView> getArtisanProfile(@PathVariable String id) {
+    Optional<Artisan> artisanOpt = artisanRepository.findById(id);
+    if (artisanOpt.isEmpty()) {
+        return ResponseEntity.notFound().build();
+    }
+
+    Artisan artisan = artisanOpt.get();
+    List<Certification> certifications = certificationRepository.findByArtisanId(id);
+
+    // 🔁 Récupérer le fullName depuis User
+    Optional<User> userOpt = userRepository.findById(artisan.getUserId());
+    String fullName = userOpt.map(User::getFullName).orElse("Artisan inconnu");
+
+    ArtisanProfileView profile = new ArtisanProfileView();
+    profile.setId(artisan.getId());
+    profile.setEmail(artisan.getEmail());
+    profile.setPhoneNumber(artisan.getPhoneNumber());
+    profile.setFullName(fullName); // ✅ injecté depuis User
+    profile.setProfession(artisan.getProfession());
+    profile.setCompanyName(artisan.getCompanyName());
+    profile.setProfilePictureUrl(artisan.getProfilePictureUrl());
+    profile.setBiography(artisan.getBiography());
+    profile.setSkills(artisan.getSkills());
+    profile.setServiceCategories(artisan.getServiceCategories());
+    profile.setWorkingHoursWeekdays(artisan.getWorkingHoursWeekdays());
+    profile.setWorkingHoursSaturday(artisan.getWorkingHoursSaturday());
+    profile.setWorkingHoursSunday(artisan.getWorkingHoursSunday());
+    profile.setWorkPhotoUrls(artisan.getWorkPhotoUrls());
+    profile.setCertifications(certifications);
+
+    return ResponseEntity.ok(profile);
+}
+
 
     @PutMapping("/{id}/profile")
     @PreAuthorize("hasAuthority('ROLE_ARTISAN')") // ou check plus fin avec userId

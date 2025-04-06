@@ -110,11 +110,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hasRole = (r) => Array.isArray(role) ? role.includes(r) : role === r;
             
                 if (hasRole("ROLE_ARTISAN")) {
-                    window.location.href = "/index-artisan";
-                } else if (hasRole("ROLE_CLIENT")) {
-                    window.location.href = "/dashboard-client.html";
-                } else {
                     window.location.href = "/dashboard";
+                } else if (hasRole("ROLE_CLIENT")) {
+                    window.location.href = "/index";
+                } else {
+                    window.location.href = "/index";
                 }
             }
             

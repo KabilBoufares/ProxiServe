@@ -50,18 +50,31 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
             // Routes HTML publiques (IMPORTANT)
             .requestMatchers(
-                "/","/index","/login", "/signup", "/forgot-password","dashboard.html","dashboard/**","/request-reset-password","/reset-password",
-                "/index-artisan", "/index-artisan.html",  "/services.html", "/services", "/services/**",
-                "/api/auth/request-reset-password",
-                "/api/auth/reset-password",      
-                "/css/**", "/js/**", "/images/**", "/favicon.ico"
-            ).permitAll()
+                            "/", "/index", "/login", "/signup", "/forgot-password", "dashboard.html", "dashboard/**",
+                            "/request-reset-password", "/reset-password",
+                            "/index-artisan", "/index-artisan.html",
+                            "/services.html", "/services", "/services/**",
+                            "/clientViewProfile", "/clientViewProfile.html", 
+                            "/clientViewProfile.css",
+                            "/clientViewProfile.js",
+                            "/clientViewProfileAnimation.js",
+                            "/api/auth/request-reset-password", 
+                            "/api/auth/reset-password",      
+                            "/css/**", "/js/**", "/images/**", "/favicon.ico"
+                        ).permitAll()
+
 
             // API auth
             .requestMatchers(HttpMethod.POST, "/api/auth/signup", "/api/auth/login").permitAll()
 
+            .requestMatchers(HttpMethod.GET, "/api/geocode").permitAll()
 
-            .requestMatchers(HttpMethod.GET, "/api/artisans/{id}/profile").permitAll()
+            
+            
+
+
+
+            .requestMatchers(HttpMethod.GET, "/api/artisans/**/profile").permitAll()
             .requestMatchers(HttpMethod.PUT, "/api/artisans/{id}/profile").hasAuthority("ROLE_ARTISAN")
             .requestMatchers(HttpMethod.POST, "/api/artisans/profile-picture").hasAuthority("ROLE_ARTISAN")
             .requestMatchers(HttpMethod.POST, "/api/artisans/work-photo").hasAuthority("ROLE_ARTISAN")

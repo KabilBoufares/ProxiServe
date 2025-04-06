@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 ? filteredSuggestions.map(s => `<div class="suggestion-item">${s}</div>`).join('')
                 : '';
 
-            suggestionsContainer.style.display = filteredSuggestions.length ? 'block' : 'none';
+            suggestionsContainer.style.display = filteredSuggestions.length ? 'block' : 'none';   
         } else {
             suggestionsContainer.style.display = 'none';
         }
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // ❌ Close search on outside click or Escape
+    // Close search on outside click or Escape
     document.addEventListener('click', (e) => {
         if (!searchPage?.contains(e.target) &&
             !Array.from(searchButtons).some(btn => btn.contains(e.target)) &&
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // ↔️ Scroll horizontal for icon buttons
-    const scrollContainer = document.querySelector('.icon-scroll');
+    const scrollContainer = document.querySelector('.icon-scroll .icon-wrapper');
     const scrollLeftBtn = document.querySelector('.scroll-left');
     const scrollRightBtn = document.querySelector('.scroll-right');
 
@@ -139,134 +139,46 @@ document.addEventListener('DOMContentLoaded', function () {
     performSearch('');
 });
 
-
-document.getElementById('searchBtn').addEventListener('click', function () {
-    const query = document.getElementById('searchInput').value;
-    const locationInput = document.getElementById('locationInput').value;
-
-    if (locationInput.trim() === '') {
-        // 🛰️ Utilise GPS si aucun nom de ville
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function (position) {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                launchSearch(query, lat, lon);
-            }, function (error) {
-                alert("Please allow location access or enter a city.");
-            });
-        } else {
-            alert("Geolocation not supported.");
-        }
-    } else {
-        // 🌍 Géocodage avec OpenStreetMap (Nominatim)
-        const city = encodeURIComponent(locationInput);
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lon = parseFloat(data[0].lon);
-                    launchSearch(query, lat, lon);
-                } else {
-                    alert("City not found.");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Error during geocoding.");
-            });
-    }
-});
-
 document.getElementById('searchBtn').addEventListener('click', function () {
     const query = document.getElementById('searchInput').value.trim();
-    const locationInput = document.getElementById('locationInput').value.trim();
-    const resultsContainer = document.getElementById('results');
-    const latitudeInput = document.getElementById('latitude');
-    const longitudeInput = document.getElementById('longitude');
+    const location = document.getElementById('locationInput').value.trim();
   
-    resultsContainer.innerHTML = '<p class="search-loading">Searching, please wait...</p>';
+    const url = new URL(window.location.origin + '/services.html');
+    if (query) url.searchParams.append('query', query);
   
-    if (locationInput === '') {
-      // 🛰️ Utiliser le GPS si aucun nom de ville n'est saisi
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            const lat = position.coords.latitude;
-            const lon = position.coords.longitude;
-            latitudeInput.value = lat;
-            longitudeInput.value = lon;
-            launchSearch(query, lat, lon);
-          },
-          error => {
-            resultsContainer.innerHTML = '<p style="color: red;">Location access denied. Please enter a city manually.</p>';
-          },
-          { enableHighAccuracy: true, timeout: 10000 }
-        );
+    if (location === '') {
+      // 🛰️ Utilisation du GPS
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          url.searchParams.append('latitude', lat);
+          url.searchParams.append('longitude', lon);
+          window.location.href = url.toString();
+        }, function () {
+          console.warn("Location access denied.");
+        });
       } else {
-        resultsContainer.innerHTML = '<p style="color: red;">Geolocation is not supported by your browser.</p>';
+        console.warn("Geolocation not supported.");
       }
     } else {
-      // 🌍 Géocodage de la ville avec OpenStreetMap (Nominatim)
-      const city = encodeURIComponent(locationInput);
-      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${city}`)
+      // 🌍 Géocodage via backend
+      fetch(`/api/geocode?city=${encodeURIComponent(location)}`)
         .then(res => res.json())
         .then(data => {
           if (data.length > 0) {
             const lat = parseFloat(data[0].lat);
             const lon = parseFloat(data[0].lon);
-            latitudeInput.value = lat;
-            longitudeInput.value = lon;
-            launchSearch(query, lat, lon);
+            url.searchParams.append('location', location);
+            url.searchParams.append('latitude', lat);
+            url.searchParams.append('longitude', lon);
           } else {
-            resultsContainer.innerHTML = '<p style="color: red;">City not found. Please try again.</p>';
+            console.warn("City not found.");
           }
         })
-        .catch(err => {
-          console.error(err);
-          resultsContainer.innerHTML = '<p style="color: red;">Error during geolocation. Try again.</p>';
+        .then(() => {
+          window.location.href = url.toString();
         });
     }
   });
-  
-  function launchSearch(query, lat, lon, fallback = false) {
-    const url = `/api/services/search/advanced?query=${encodeURIComponent(query)}&latitude=${lat}&longitude=${lon}&radiusKm=10${fallback ? '&disableDistanceCheck=true' : ''}`;
-    const container = document.getElementById('results');
-  
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        container.innerHTML = ''; // clear loading
-  
-        if (data.length === 0 && !fallback) {
-          // 🔁 Essai avec disableDistanceCheck
-          console.warn('No results, retrying with disableDistanceCheck=true');
-          launchSearch(query, lat, lon, true);
-          return;
-        }
-  
-        if (data.length === 0) {
-          container.innerHTML = '<p style="color: var(--beige);">No results found.</p>';
-          return;
-        }
-  
-        data.forEach(service => {
-          const div = document.createElement('div');
-          div.className = 'service-result-card';
-          div.innerHTML = `
-            <h3>${service.title}</h3>
-            <p>${service.description}</p>
-            <p><strong>Price:</strong> ${service.price} DT</p>
-            <p><strong>Distance:</strong> ${service.distanceKm.toFixed(2)} km</p>
-            <p><strong>Rating:</strong> ${service.rating?.toFixed(1) ?? 'N/A'} ⭐</p>
-          `;
-          container.appendChild(div);
-        });
-      })
-      .catch(err => {
-        console.error(err);
-        container.innerHTML = '<p style="color: red;">Search failed. Please try again.</p>';
-      });
-  }
-  
   

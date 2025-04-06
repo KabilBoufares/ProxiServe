@@ -30,8 +30,14 @@ public class ViewController {
         return "reset-password"; // templates/reset-password.html
     }
 
+    @GetMapping("/clientViewProfile")
+    public String showArtisanProfile(@RequestParam("id") String id, Model model) {
+        model.addAttribute("artisanId", id);
+        return "clientViewProfile"; // Va charger templates/artisan-profile.html
+    }
 
-
+    
+    
     @GetMapping("/dashboard")
     public String showDashboard() {
         return "dashboard"; // Redirection après login (à créer)
