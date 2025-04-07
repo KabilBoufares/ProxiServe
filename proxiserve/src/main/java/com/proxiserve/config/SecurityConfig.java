@@ -94,9 +94,9 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.POST, "/api/stripe/create-checkout-session").permitAll()
 
             // Artisan visible par tous les rôles
-            .requestMatchers(HttpMethod.GET, "/api/services/artisan/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
+            .requestMatchers(HttpMethod.GET, "/api/services/artisan/**").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/artisans/nearby").hasAuthority("ROLE_CLIENT")
-            .requestMatchers(HttpMethod.GET, "/api/artisans").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_ARTISAN")
+            .requestMatchers(HttpMethod.GET, "/api/artisans").permitAll()
 
             // Reviews
             .requestMatchers(HttpMethod.POST, "/api/reviews").hasAnyAuthority("ROLE_CLIENT", "ROLE_ADMIN")

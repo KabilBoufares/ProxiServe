@@ -148,9 +148,24 @@ public class BookingController {
         });
 
         Booking saved = bookingRepository.save(booking);
+
+        // 🔁 Renvoyer un BookingArtisanView complet
+        Client client = clientOpt.get();
+        BookingArtisanView view = new BookingArtisanView(
+            saved.getId(),
+            saved.getStatus(),
+            saved.getBookingDate(),
+            saved.getCreatedAt(),
+            client.getFullName(),
+            user.getEmail(),
+            client.getPhoneNumber(),
+            service.getTitle(),
+            service.getDescription(),
+            saved.getLocation()
+        );
         logger.info("Réservation créée avec ID : {}", saved.getId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        return ResponseEntity.status(HttpStatus.CREATED).body(view);
     }
 
    //  Récupérer les réservations du client connecté

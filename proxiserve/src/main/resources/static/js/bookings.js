@@ -7,30 +7,47 @@ const bookings = {
         try {
             bookings.data = await api.getBookings();
             await bookings.render();
-            bookings.setupEventListeners(); // appelée UNE FOIS ici
+            bookings.setupEventListeners();
+
+            // 🔄 Auto-refresh toutes les 30 secondes (si l'onglet est actif)
+            setInterval(async () => {
+                if (document.visibilityState === 'visible') {
+                    bookings.data = await api.getBookings();
+                    await bookings.render();
+                }
+            }, 30000); // 30 sec
         } catch (error) {
             utils.handleApiError(error);
         }
     },
 
-    // Affichage des réservations
+    // Rendu des réservations
     render: async () => {
         const bookingsList = document.getElementById('bookingsList');
         bookingsList.innerHTML = '';
 
         const filteredBookings = bookings.currentFilter === 'all'
             ? bookings.data
-            : bookings.data.filter(booking => booking.status === bookings.currentFilter);
+            : bookings.data.filter(b => b.status === bookings.currentFilter);
 
         if (filteredBookings.length === 0) {
             bookingsList.innerHTML = '<p class="no-bookings">Aucune réservation trouvée</p>';
             return;
         }
 
-        const sortedBookings = filteredBookings.sort((a, b) =>
-            new Date(b.bookingDate) - new Date(a.bookingDate)
-        );
-
+        const sortedBookings = [...filteredBookings].sort((a, b) => {
+            const statusOrder = {
+                'PENDING': 0,
+                'CONFIRMED': 1,
+                'REJECTED': 2,
+                'COMPLETED': 3
+            };
+            const statusComparison = statusOrder[a.status] - statusOrder[b.status];
+            if (statusComparison !== 0) return statusComparison;
+    
+            // Tri par date décroissante
+            return new Date(b.bookingDate) - new Date(a.bookingDate);
+        });
         for (const booking of sortedBookings) {
             let address = 'Non spécifiée';
             if (booking.location?.coordinates) {
@@ -39,8 +56,8 @@ const bookings = {
                     const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                     const data = await response.json();
                     address = data.display_name || 'Adresse introuvable';
-                } catch (error) {
-                    console.error("Erreur de géolocalisation :", error);
+                } catch (err) {
+                    console.error("Erreur localisation :", err);
                 }
             }
 
@@ -67,44 +84,7 @@ const bookings = {
         }
     },
 
-    // Écouteurs des actions + filtres (à ne PAS appeler dans render())
-    setupEventListeners: () => {
-        // Actions sur les réservations
-        const bookingsListElement = document.getElementById('bookingsList');
-        if (bookingsListElement) {
-            bookingsListElement.addEventListener('click', async (e) => {
-                const actionBtn = e.target.closest('[data-action]');
-                if (!actionBtn) return;
-
-                const { action, id } = actionBtn.dataset;
-                await bookings.handleBookingAction(action, id);
-            });
-        }
-
-        // Filtres
-        const filters = document.querySelectorAll('.bookings-filters .filter');
-        filters.forEach(filter => {
-            filter.addEventListener('click', () => {
-                filters.forEach(f => f.classList.remove('active'));
-                filter.classList.add('active');
-                bookings.currentFilter = filter.getAttribute('data-status');
-                bookings.render();
-            });
-        });
-    },
-
-    // Libellés
-    getStatusLabel: (status) => {
-        const labels = {
-            'PENDING': 'En attente',
-            'CONFIRMED': 'Confirmé',
-            'REJECTED': 'Rejeté',
-            'COMPLETED': 'Terminé'
-        };
-        return labels[status] || status;
-    },
-
-    // Boutons dynamiques selon statut
+    // Boutons d'action selon statut
     getActionButtons: (booking) => {
         const buttons = [];
         switch (booking.status) {
@@ -135,7 +115,41 @@ const bookings = {
         return buttons;
     },
 
-    // Actions API
+    // Labels
+    getStatusLabel: (status) => {
+        const labels = {
+            'PENDING': 'En attente',
+            'CONFIRMED': 'Confirmé',
+            'REJECTED': 'Rejeté',
+            'COMPLETED': 'Terminé'
+        };
+        return labels[status] || status;
+    },
+
+    // Gestion des clics sur les boutons
+    setupEventListeners: () => {
+        const bookingsListElement = document.getElementById('bookingsList');
+        if (bookingsListElement) {
+            bookingsListElement.addEventListener('click', async (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const { action, id } = btn.dataset;
+                await bookings.handleBookingAction(action, id);
+            });
+        }
+
+        const filters = document.querySelectorAll('.bookings-filters .filter');
+        filters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                filters.forEach(f => f.classList.remove('active'));
+                filter.classList.add('active');
+                bookings.currentFilter = filter.getAttribute('data-status');
+                bookings.render();
+            });
+        });
+    },
+
+    // API backend
     handleBookingAction: async (action, bookingId) => {
         try {
             switch (action) {

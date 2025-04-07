@@ -12,12 +12,21 @@
     <!-- Banner -->
     <div class="banner">
         <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=1200&h=400&fit=crop" alt="Workshop" class="banner-img">
+        <div id="go-back">
+            <button id="go-back-btn" onclick="window.history.back()">
+              ← Go Back 
+            </button>
+          </div>
+          
         <div class="container">
             <div class="profile-photo">
                 <img src="https://images.unsplash.com/photo-1540569014015-19a7be504e3a?w=150&h=150&fit=crop" alt="Karim Ben Youssef">
             </div>
         </div>
     </div>
+
+      
+    
 
     <!-- Main Content -->
     <main class="container main-content">
@@ -120,7 +129,7 @@
                 <!-- Action Buttons -->
                 <div class="action-buttons">
                     <button class="btn btn-white"><i class="fas fa-phone"></i> Contact</button>
-                    <button class="btn btn-accent"><i class="fas fa-message"></i> Request Quote</button>
+                    <button class="btn btn-accent"><i class="fas fa-message"></i> Send E-mail</button>
                     <button class="btn btn-secondary"><i class="far fa-clock"></i> Book Appointment</button>
                 </div>
 
@@ -172,41 +181,16 @@
                     <div class="card-content">
                         <div class="reviews-header">
                             <h2>Client Reviews</h2>
-                            <div class="rating">
-                                <div class="stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star-half-alt"></i>
-                                </div>
-                                <span class="rating-score">4.7</span>
-                                <span class="review-count">(25 reviews)</span>
+                            <div class="rating" >
+                                <div class="stars" id="review-stars"></div>
+                                <span class="rating-score" id="rating-score">0.0</span>
+                                <span class="review-count" id="review-count">(0 reviews)</span>
                             </div>
                         </div>
 
-                        <div class="reviews-list">
-                            <div class="review-card">
-                                <div class="stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <p>"Fast, clean, and professional work!"</p>
-                            </div>
+                        <div class="reviews-list" id="reviews-list">
+                           
 
-                            <div class="review-card">
-                                <div class="stars">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
-                                </div>
-                                <p>"Satisfied with the service, very punctual."</p>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -260,8 +244,8 @@
     </footer>
 
     
-     <script th:src="@{/js/clientViewProfile.js}"></script>
-       <script th:src="@{/js/clientViewProfileAnimation.js}"></script>
+    <script th:src="@{/js/clientViewProfile.js}"></script>
+    <script th:src="@{/js/clientViewProfileAnimation.js}"></script>
 
 </body>
 </html>

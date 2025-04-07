@@ -3,11 +3,13 @@ const skills = {
     init: () => {
         skills.render();
         skills.setupEventListeners();
+        hoursManager.init(); // 🔥 Ajouté ici pour activer la gestion des horaires
     },
 
     render: () => {
         if (!profile.data) return;
 
+        // Rendu compétences
         const skillsList = document.getElementById('skillsList');
         skillsList.innerHTML = '';
 
@@ -58,9 +60,6 @@ const skills = {
                 skills.handleDeleteSkill(skill);
             }
         });
-
-        const hoursForm = document.getElementById('hoursForm');
-        hoursForm.addEventListener('submit', skills.handleHoursSubmit);
     },
 
     handleAddSkill: async (skill) => {
@@ -85,7 +84,6 @@ const skills = {
 
             if (!response.ok) throw new Error("Erreur lors de l'ajout de la compétence");
 
-            // Rafraîchir depuis le backend pour être sûr
             profile.data = await api.getProfile(artisanId);
             skills.render();
 
@@ -107,15 +105,63 @@ const skills = {
         } catch (error) {
             utils.handleApiError(error);
         }
+    }
+};
+
+// 🔧 Gestion des horaires en mode lecture seule avec édition contrôlée
+const hoursManager = {
+    original: {},
+
+    init: () => {
+        const editBtn = document.getElementById('editHoursBtn');
+        const cancelBtn = document.getElementById('cancelHoursBtn');
+        const form = document.getElementById('hoursForm');
+
+        if (editBtn) {
+            editBtn.addEventListener('click', () => hoursManager.toggleEditable(true));
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                hoursManager.restoreOriginal();
+                hoursManager.toggleEditable(false);
+            });
+        }
+
+        if (form) {
+            form.addEventListener('submit', hoursManager.handleSubmit);
+        }
     },
 
-    handleHoursSubmit: async (event) => {
-        event.preventDefault();
+    toggleEditable: (editable) => {
+        const fields = ['workingHoursWeekdays', 'workingHoursSaturday', 'workingHoursSunday'];
+        fields.forEach(id => {
+            const input = document.getElementById(id);
+            if (editable) {
+                hoursManager.original[id] = input.value;
+                input.removeAttribute('readonly');
+            } else {
+                input.setAttribute('readonly', true);
+            }
+        });
+
+        document.getElementById('editHoursControls').style.display = editable ? 'none' : 'block';
+        document.getElementById('saveCancelHours').style.display = editable ? 'flex' : 'none';
+    },
+
+    restoreOriginal: () => {
+        Object.entries(hoursManager.original).forEach(([id, value]) => {
+            document.getElementById(id).value = value;
+        });
+    },
+
+    handleSubmit: async (e) => {
+        e.preventDefault();
 
         const formData = {
-            workingHoursWeekdays: document.getElementById('workingHoursWeekdays').value,
-            workingHoursSaturday: document.getElementById('workingHoursSaturday').value,
-            workingHoursSunday: document.getElementById('workingHoursSunday').value
+            workingHoursWeekdays: document.getElementById('workingHoursWeekdays').value.trim(),
+            workingHoursSaturday: document.getElementById('workingHoursSaturday').value.trim(),
+            workingHoursSunday: document.getElementById('workingHoursSunday').value.trim()
         };
 
         try {
@@ -123,7 +169,8 @@ const skills = {
             await api.updateProfile(artisanId, formData);
 
             profile.data = { ...profile.data, ...formData };
-            utils.showNotification('Horaires mis à jour');
+            utils.showNotification('Horaires mis à jour avec succès');
+            hoursManager.toggleEditable(false);
         } catch (error) {
             utils.handleApiError(error);
         }

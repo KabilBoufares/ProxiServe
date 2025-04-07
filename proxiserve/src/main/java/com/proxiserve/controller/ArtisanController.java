@@ -258,41 +258,41 @@ public ResponseEntity<?> updateProfile(@PathVariable String id, @RequestBody Art
     }
 
    @PostMapping("/work-photo")
-    @PreAuthorize("hasAuthority('ROLE_ARTISAN')")
-    public ResponseEntity<?> uploadWorkPhoto(@RequestParam("file") MultipartFile file, Principal principal) {
-        String email = principal.getName();
-        logger.info("[UPLOAD] - Artisan tente d'uploader une photo de travail : {}", email);
+@PreAuthorize("hasAuthority('ROLE_ARTISAN')")
+public ResponseEntity<?> uploadWorkPhoto(@RequestParam("file") MultipartFile file, Principal principal) {
+    String email = principal.getName();
+    logger.info("[UPLOAD] - Artisan tente d'uploader une photo de travail : {}", email);
 
-        Optional<Artisan> artisanOpt = artisanRepository.findByEmail(email);
-        if (artisanOpt.isEmpty()) {
-            logger.warn("[ERREUR] - Artisan non trouvé pour l'email : {}", email);
-            return ResponseEntity.badRequest().body("Artisan non trouvé.");
-        }
-
-        Artisan artisan = artisanOpt.get();
-        try {
-            String imageUrl = imageUploadService.uploadImage(file);
-
-            // Initialiser la liste s'il le faut
-            if (artisan.getWorkPhotoUrls() == null) {
-                artisan.setWorkPhotoUrls(new ArrayList<>());
-            }
-
-            artisan.getWorkPhotoUrls().add(imageUrl);
-            artisanRepository.save(artisan);
-
-            logger.info("[SUCCÈS] - Nouvelle photo de travail ajoutée pour l'artisan {}", artisan.getId());
-
-            // Retourner un objet JSON (plus propre que String seul)
-            Map<String, String> response = new HashMap<>();
-            response.put("url", imageUrl);
-            return ResponseEntity.ok(response);
-
-        } catch (IOException e) {
-            logger.error("[ERREUR] - Upload échoué pour l'artisan {} : {}", artisan.getId(), e.getMessage());
-            return ResponseEntity.internalServerError().body("Erreur lors de l’upload.");
-        }
+    Optional<Artisan> artisanOpt = artisanRepository.findByEmail(email);
+    if (artisanOpt.isEmpty()) {
+        logger.warn("[ERREUR] - Artisan non trouvé pour l'email : {}", email);
+        return ResponseEntity.badRequest().body("Artisan non trouvé.");
     }
+
+    Artisan artisan = artisanOpt.get();
+    try {
+        String imageUrl = imageUploadService.uploadImage(file);
+
+        // Initialiser la liste s'il le faut
+        if (artisan.getWorkPhotoUrls() == null) {
+            artisan.setWorkPhotoUrls(new ArrayList<>());
+        }
+
+        artisan.getWorkPhotoUrls().add(imageUrl);
+        artisanRepository.save(artisan);
+
+        logger.info("[SUCCÈS] - Nouvelle photo de travail ajoutée pour l'artisan {}", artisan.getId());
+
+        // Retourner un objet JSON (plus propre que String seul)
+        Map<String, String> response = new HashMap<>();
+        response.put("url", imageUrl);
+        return ResponseEntity.ok(response);
+
+    } catch (IOException e) {
+        logger.error("[ERREUR] - Upload échoué pour l'artisan {} : {}", artisan.getId(), e.getMessage());
+        return ResponseEntity.internalServerError().body("Erreur lors de l’upload.");
+    }
+}
 
 
 

@@ -1,4 +1,3 @@
-// Gestion des avis
 const reviews = {
     data: {
         reviews: [],
@@ -9,8 +8,7 @@ const reviews = {
     init: async () => {
         try {
             const artisanId = localStorage.getItem('artisanId');
-            
-            // Chargement parallèle des avis et des stats
+
             const [reviewsData, statsData] = await Promise.all([
                 api.getReviews(artisanId),
                 api.getReviewStats(artisanId)
@@ -18,29 +16,30 @@ const reviews = {
 
             reviews.data.reviews = reviewsData;
             reviews.data.stats = statsData;
-            
+
             reviews.render();
         } catch (error) {
             utils.handleApiError(error);
         }
     },
 
-    // Affichage des avis et statistiques
+    // Rendu global
     render: () => {
         reviews.renderStats();
         reviews.renderReviews();
     },
 
-    // Affichage des statistiques
+    // Rendu des statistiques
     renderStats: () => {
-        if (!reviews.data.stats) return;
-
         const stats = reviews.data.stats;
         const statsContainer = document.getElementById('reviewsStats');
-        
         statsContainer.innerHTML = '';
-        
-        // Note moyenne
+
+        if (!stats || stats.totalReviews === 0) {
+            statsContainer.innerHTML = '<p class="no-stats">Aucune statistique disponible</p>';
+            return;
+        }
+
         const averageRating = utils.createElement('div', { className: 'stats-item' }, [
             utils.createElement('h3', {}, ['Note moyenne']),
             utils.createElement('div', { className: 'rating-big' }, [
@@ -53,7 +52,6 @@ const reviews = {
             ])
         ]);
 
-        // Nombre total d'avis
         const totalReviews = utils.createElement('div', { className: 'stats-item' }, [
             utils.createElement('h3', {}, ['Nombre d\'avis']),
             utils.createElement('div', { className: 'total-reviews' }, [
@@ -61,15 +59,13 @@ const reviews = {
             ])
         ]);
 
-        // Répartition des notes
         const starsBreakdown = utils.createElement('div', { className: 'stats-item full-width' }, [
             utils.createElement('h3', {}, ['Répartition des notes']),
-            utils.createElement('div', { className: 'stars-breakdown' }, 
-                Object.entries(stats.starsBreakdown)
-                    .sort((a, b) => b[0] - a[0]) // Tri décroissant
+            utils.createElement('div', { className: 'stars-breakdown' },
+                Object.entries(stats.ratingDistribution || {})
+                    .sort((a, b) => b[0] - a[0])
                     .map(([stars, count]) => {
-                        const percentage = (count / stats.totalReviews) * 100;
-                        
+                        const percentage = stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
                         return utils.createElement('div', { className: 'breakdown-row' }, [
                             utils.createElement('span', { className: 'stars-count' }, [
                                 `${stars} étoile${stars > 1 ? 's' : ''}`
@@ -93,17 +89,24 @@ const reviews = {
         statsContainer.appendChild(starsBreakdown);
     },
 
-    // Affichage des avis
+    // Rendu des avis
     renderReviews: () => {
         const reviewsList = document.getElementById('reviewsList');
         reviewsList.innerHTML = '';
 
+        if (reviews.data.reviews.length === 0) {
+            reviewsList.appendChild(
+                utils.createElement('p', { className: 'no-reviews' }, [
+                    'Aucun avis pour le moment'
+                ])
+            );
+            return;
+        }
+
         reviews.data.reviews.forEach(review => {
             const reviewElement = utils.createElement('div', { className: 'review-card' }, [
                 utils.createElement('div', { className: 'review-header' }, [
-                    utils.createElement('span', { className: 'client-name' }, [
-                        review.clientName
-                    ]),
+                    utils.createElement('span', { className: 'client-name' }, [review.clientName]),
                     utils.createElement('span', { className: 'review-date' }, [
                         utils.formatDate(review.createdAt)
                     ])
@@ -118,14 +121,5 @@ const reviews = {
 
             reviewsList.appendChild(reviewElement);
         });
-
-        // Message si aucun avis
-        if (reviews.data.reviews.length === 0) {
-            reviewsList.appendChild(
-                utils.createElement('p', { className: 'no-reviews' }, [
-                    'Aucun avis pour le moment'
-                ])
-            );
-        }
     }
 };

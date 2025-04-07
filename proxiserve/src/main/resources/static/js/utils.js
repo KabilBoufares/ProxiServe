@@ -81,14 +81,18 @@ const utils = {
         );
     },
 
-    // Créer des étoiles pour les avis
+   
+    // Créer des étoiles pour les avis (version DOM-compatible)
     createStars: (rating) => {
-        const stars = [];
+        const container = document.createElement('span');
         for (let i = 1; i <= 5; i++) {
-            stars.push(`<i class="fas fa-star${i <= rating ? '' : '-o'}"></i>`);
+            const star = document.createElement('i');
+            star.className = i <= rating ? 'fas fa-star' : 'far fa-star';
+            container.appendChild(star);
         }
-        return stars.join('');
+        return container;
     },
+
 
     // Générer un identifiant unique
     generateId: () => {

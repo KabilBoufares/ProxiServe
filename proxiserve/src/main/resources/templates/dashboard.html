@@ -6,6 +6,7 @@
     <title>Dashboard Artisan</title>
     <link rel="stylesheet" href="css/1.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
 </head>
 <body>
     <div class="dashboard">
@@ -48,6 +49,14 @@
             <!-- Profil -->
             <section id="profile" class="tab-content active">
                 <h2>Mon Profil</h2>
+                <br><br
+                <!-- Zone photo -->
+                <div class="form-group">
+                    <label>Photo de profil</label>
+                    <input type="file" id="profilePictureInput" accept="image/*" style="display:none;">
+                    <button type="button" id="uploadPhotoBtn" class="btn-accent">Changer la photo</button>
+                </div>
+            
                 <form id="profileForm" class="form-grid">
                     <div class="form-group">
                         <label for="email">Email</label>
@@ -55,27 +64,31 @@
                     </div>
                     <div class="form-group">
                         <label for="phoneNumber">Téléphone</label>
-                        <input type="tel" id="phoneNumber">
+                        <input type="tel" id="phoneNumber" readonly>
                     </div>
                     <div class="form-group full-width">
                         <label for="biography">Biographie</label>
-                        <textarea id="biography" rows="4"></textarea>
+                        <textarea id="biography" rows="4" readonly></textarea>
                     </div>
                     <div class="form-group">
                         <label for="profession">Profession</label>
-                        <input type="text" id="profession">
+                        <input type="text" id="profession" readonly>
                     </div>
                     <div class="form-group">
                         <label for="companyName">Nom de l'entreprise</label>
-                        <input type="text" id="companyName">
+                        <input type="text" id="companyName" readonly>
                     </div>
-                    <div class="form-group">
-                        <label>Photo de profil</label>
-                        <input type="file" id="profilePictureInput" accept="image/*">
+            
+                    <!-- Boutons d'action -->
+                    <div class="form-group full-width" id="actionButtons" style="display: none;">
+                        <button type="submit" class="btn-primary">Enregistrer</button>
+                        <button type="button" class="btn-secondary" id="cancelEdit">Annuler</button>
                     </div>
-                    <button type="submit" class="btn-primary full-width">Enregistrer</button>
                 </form>
+            
+                <button type="button" class="btn-accent full-width" id="editProfileBtn">Modifier le profil</button>
             </section>
+            
 
             <!-- Compétences -->
             <section id="skills" class="tab-content">
@@ -84,11 +97,12 @@
                 <div class="skills-container d-flex flex-wrap gap-4">
                     <!-- Bloc Compétences -->
                     <div class="skills-list flex-grow-1">
-                        <h3>Mes compétences</h3>
+                        <h3>Mes compétences</h3><br>
             
                         <!-- Champ d'ajout + bouton -->
                         <div class="d-flex gap-2 mb-2">
                             <input type="text" id="newSkill" class="form-control" placeholder="Nouvelle compétence">
+                            <br><br>
                             <button id="addSkillBtn" class="btn btn-primary">Ajouter</button>
                         </div>
             
@@ -102,21 +116,34 @@
                     <!-- Bloc Horaires -->
                     <div class="working-hours flex-grow-1">
                         <h3>Horaires de travail</h3>
+
                         <form id="hoursForm">
                             <div class="form-group mb-2">
                                 <label for="workingHoursWeekdays">Semaine</label>
-                                <input type="text" id="workingHoursWeekdays" class="form-control" placeholder="ex: 08:00 - 18:00">
+                                <input type="text" id="workingHoursWeekdays" class="form-control" readonly>
                             </div>
                             <div class="form-group mb-2">
                                 <label for="workingHoursSaturday">Samedi</label>
-                                <input type="text" id="workingHoursSaturday" class="form-control" placeholder="ex: 09:00 - 13:00">
+                                <input type="text" id="workingHoursSaturday" class="form-control" readonly>
                             </div>
                             <div class="form-group mb-2">
                                 <label for="workingHoursSunday">Dimanche</label>
-                                <input type="text" id="workingHoursSunday" class="form-control" placeholder="Fermé">
+                                <input type="text" id="workingHoursSunday" class="form-control" readonly>
                             </div>
-                            <button type="submit" class="btn btn-primary">Enregistrer</button>
                         </form>
+                        <!-- Bouton Modifier -->
+                        <div id="editHoursControls" class="mb-3">
+                            <button type="button" class="btn btn-secondary" id="editHoursBtn">Modifier</button>
+                        </div>
+                        <!-- Boutons Enregistrer / Annuler -->
+                        <div id="saveCancelHours" style="display: none;" class="d-flex gap-2 mb-3">
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            <button type="button" class="btn btn-accent" id="cancelHoursBtn">Annuler</button>
+                        </div>
+                        
+
+
+                        
                     </div>
                 </div>
             </section>

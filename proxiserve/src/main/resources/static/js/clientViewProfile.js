@@ -1,4 +1,4 @@
-// Smooth scroll for anchor links
+// --- SCROLL DOUX ---
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         e.preventDefault();
@@ -6,12 +6,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Fade-in animation using IntersectionObserver
-const observerOptions = {
-    root: null,
-    threshold: 0.1,
-    rootMargin: '0px'
-};
+// --- ANIMATION APPARITION ---
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -19,36 +14,17 @@ const observer = new IntersectionObserver((entries) => {
             observer.unobserve(entry.target);
         }
     });
-}, observerOptions);
-
-// Apply fade-in to all cards
+}, { threshold: 0.1 });
 document.querySelectorAll('.card').forEach(card => observer.observe(card));
 
-// Load image animation for portfolio
+// --- IMAGE PORTFOLIO ---
 document.querySelectorAll('.portfolio-item img').forEach(img => {
     img.addEventListener('load', function () {
         this.classList.add('loaded');
     });
 });
 
-// Mobile nav toggle (if present)
-const menuButton = document.querySelector('.menu-toggle');
-const navMenu = document.querySelector('.nav-menu');
-if (menuButton) {
-    menuButton.addEventListener('click', () => navMenu.classList.toggle('active'));
-}
-
-// Rating hover effects (UI only)
-document.querySelectorAll('.stars i').forEach(star => {
-    star.addEventListener('mouseover', function () {
-        this.classList.add('hover');
-    });
-    star.addEventListener('mouseout', function () {
-        this.classList.remove('hover');
-    });
-});
-
-// DOM loaded : fetch artisan profile
+// --- MAIN ---
 document.addEventListener("DOMContentLoaded", async () => {
     const artisanId = new URLSearchParams(window.location.search).get("id");
     if (!artisanId) return;
@@ -57,31 +33,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         const res = await fetch(`/api/artisans/${artisanId}/profile`);
         if (!res.ok) throw new Error("Erreur lors du chargement du profil");
 
-        const { artisan, certifications, fullName } = await res.json();
+        const artisan = await res.json();
 
-        // 🔹 Titre, nom complet, profession
-        document.title = `${fullName} - ${artisan.profession} | Proxiserve`;
-        document.querySelector("h1").textContent = fullName;
+        // 🔹 TITRE, NOM, MÉTIER
+        document.title = `${artisan.fullName} - ${artisan.profession} | Proxiserve`;
+        document.querySelector("h1").textContent = artisan.fullName;
         document.querySelector(".profession").textContent = artisan.profession;
         document.querySelector(".about-text").textContent = artisan.biography || "";
 
-        // 🔹 Photo de profil
+        // 🔹 PHOTO
         const profileImg = document.querySelector(".profile-photo img");
         if (profileImg && artisan.profilePictureUrl) {
             profileImg.src = artisan.profilePictureUrl;
-            profileImg.alt = fullName;
+            profileImg.alt = artisan.fullName;
         }
 
-        // 🔹 Informations horaires
+        // 🔹 LOCATION & WORKING HOURS (format propre)
         const infoList = document.querySelector(".info-list");
         infoList.innerHTML = `
-            <div class="info-item"><i class="fas fa-map-marker-alt"></i><span>${artisan.location ? "Localisé" : "Tunisia"}</span></div>
-            ${artisan.workingHoursWeekdays ? `<div class="info-item"><i class="far fa-clock"></i><span>${artisan.workingHoursWeekdays}</span></div>` : ""}
-            ${artisan.workingHoursSaturday ? `<div class="info-item"><i class="far fa-clock"></i><span>${artisan.workingHoursSaturday}</span></div>` : ""}
-            ${artisan.workingHoursSunday ? `<div class="info-item"><i class="far fa-clock"></i><span>${artisan.workingHoursSunday}</span></div>` : ""}
+            <div class="info-item"><i class="fas fa-map-marker-alt"></i><span>${artisan.location || "Tunisia"}</span></div>
+            ${artisan.workingHoursWeekdays ? `<div class="info-item"><i class="far fa-clock"></i><span>Monday to Friday: ${artisan.workingHoursWeekdays}</span></div>` : ""}
+            ${artisan.workingHoursSaturday ? `<div class="info-item"><i class="far fa-clock"></i><span>Saturday: ${artisan.workingHoursSaturday}</span></div>` : ""}
+            ${artisan.workingHoursSunday ? `<div class="info-item"><i class="far fa-clock"></i><span>Sunday: ${artisan.workingHoursSunday}</span></div>` : ""}
         `;
 
-        // 🔹 Réseaux sociaux
+        // 🔹 RÉSEAUX SOCIAUX
         const socials = document.querySelector(".social-links");
         socials.innerHTML = `
             ${artisan.facebook ? `<a href="${artisan.facebook}" class="social-link" target="_blank"><i class="fab fa-facebook"></i></a>` : ""}
@@ -89,16 +65,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${artisan.linkedin ? `<a href="${artisan.linkedin}" class="social-link" target="_blank"><i class="fab fa-linkedin"></i></a>` : ""}
         `;
 
-        // 🔹 Compétences
+        // 🔹 COMPÉTENCES
         const skillsList = document.querySelector(".skills-list");
         if (Array.isArray(artisan.skills)) {
             skillsList.innerHTML = artisan.skills.map(skill => `<li><i class="fas fa-check"></i>${skill}</li>`).join('');
         }
 
-        // 🔹 Certifications
+        // 🔹 CERTIFICATIONS
         const certList = document.querySelector(".cert-list");
-        if (Array.isArray(certifications)) {
-            certList.innerHTML = certifications.map(cert => `
+        if (Array.isArray(artisan.certifications)) {
+            certList.innerHTML = artisan.certifications.map(cert => `
                 <div class="cert-item">
                     <i class="fas fa-certificate"></i>
                     <div class="cert-details">
@@ -111,9 +87,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             `).join('');
         }
 
-        // 🔹 Portfolio
+        // 🔹 PORTFOLIO
         const portfolioGrid = document.querySelector(".portfolio-grid");
-        if (artisan.workPhotoUrls && Array.isArray(artisan.workPhotoUrls)) {
+        if (Array.isArray(artisan.workPhotoUrls)) {
             portfolioGrid.innerHTML = artisan.workPhotoUrls.map(url => `
                 <div class="portfolio-item">
                     <img src="${url}" alt="Work" onerror="this.src='https://via.placeholder.com/300x200?text=Image+indisponible';">
@@ -121,16 +97,67 @@ document.addEventListener("DOMContentLoaded", async () => {
             `).join('');
         }
 
-        // 🔹 Services (dans pricing)
+        // 🔹 SERVICES (PRIX)
+        const serviceRes = await fetch(`/api/services/artisan/${artisanId}`);
+        const services = await serviceRes.json();
         const pricingGrid = document.querySelector(".pricing-grid");
-        if (Array.isArray(artisan.serviceCategories)) {
-            pricingGrid.innerHTML = artisan.serviceCategories.map(service => `
+        if (Array.isArray(services)) {
+            pricingGrid.innerHTML = services.map(s => `
                 <div class="price-card">
-                    <h3>${service}</h3>
-                    <p class="price">Tarif sur devis</p>
+                    <h3>${s.title}</h3>
+                    <p class="price">${s.price ? `${s.price} DT` : "Tarif sur devis"}</p>
                 </div>
             `).join('');
         }
+
+        // 🔹 BOUTON CONTACT → WhatsApp OU Mail
+        const contactBtn = document.querySelector(".btn-white");
+        if (artisan.phoneNumber) {
+            contactBtn.onclick = () => {
+                const clean = artisan.phoneNumber.replace(/[^0-9]/g, '');
+                window.open(`https://wa.me/${clean}`, '_blank');
+            };
+        }
+
+        // 🔹 BOUTON DEMANDE DE DEVIS → Mail
+        const quoteBtn = document.querySelector(".btn-accent");
+        if (artisan.email) {
+            quoteBtn.onclick = () => {
+                const subject = encodeURIComponent("Demande de devis via Proxiserve");
+                const body = encodeURIComponent(`Bonjour ${artisan.fullName},\n\nJe suis intéressé(e) par vos services. Pourriez-vous me fournir un devis ?\n\nMerci.`);
+                window.location.href = `mailto:${artisan.email}?subject=${subject}&body=${body}`;
+            };
+        }
+
+        // 🔹 AVIS CLIENTS
+        const statsRes = await fetch(`/api/reviews/stats/${artisanId}`);
+        const reviewsRes = await fetch(`/api/reviews/artisan/${artisanId}`);
+        const stats = await statsRes.json();
+        const reviews = await reviewsRes.json();
+
+        const starsContainer = document.getElementById("review-stars");
+        const ratingScore = document.getElementById("rating-score");
+        const reviewCount = document.getElementById("review-count");
+        const reviewsList = document.getElementById("reviews-list");
+
+        const avg = parseFloat(stats.averageRating || 0).toFixed(1);
+        const full = Math.floor(avg);
+        const half = avg - full >= 0.5;
+
+        starsContainer.innerHTML = `
+            ${'<i class="fas fa-star"></i>'.repeat(full)}
+            ${half ? '<i class="fas fa-star-half-alt"></i>' : ''}
+            ${'<i class="far fa-star"></i>'.repeat(5 - full - (half ? 1 : 0))}
+        `;
+        ratingScore.textContent = avg;
+        reviewCount.textContent = `(${stats.totalReviews} review${stats.totalReviews > 1 ? 's' : ''})`;
+
+        reviewsList.innerHTML = reviews.length > 0 ? reviews.map(r => `
+            <div class="review-card">
+                <div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                <p>"${r.comment}"</p>
+            </div>
+        `).join('') : "<p>No reviews yet.</p>";
 
     } catch (err) {
         console.error(err);
