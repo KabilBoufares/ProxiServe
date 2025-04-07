@@ -16,6 +16,7 @@ public class BookingClientView {
     private String status;
     private LocalDateTime bookingDate;
     private LocalDateTime createdAt;
+ 
 
     private String serviceTitle;
     private String serviceDescription;

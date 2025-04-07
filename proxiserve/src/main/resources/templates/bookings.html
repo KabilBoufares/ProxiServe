@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reservation System</title>
+  <link rel="stylesheet" href="/css/bookings.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Reservation System</h1>
+      <button id="logoutBtn" class="btn-secondary">Logout</button>
+    </header>
+
+    <nav>
+      <button id="showBookingsBtn" class="btn-primary">My Reservations</button>
+      <button id="newBookingBtn" class="btn-primary">New Reservation</button>
+      <button id="backToSearchBtn" class="btn-secondary">Back to Search</button>
+    </nav>
+
+    <!-- Reservation Form -->
+    <div id="bookingForm" class="section">
+      <h2>New Reservation</h2>
+      <form id="reservationForm">
+        <div class="form-group">
+          <label for="serviceId">Service ID</label>
+          <input type="text" id="serviceId" required readonly>
+        </div>
+        <div class="form-group">
+          <label for="bookingDate">Reservation Date</label>
+          <input type="datetime-local" id="bookingDate" required>
+        </div>
+        <div class="form-group">
+          <label for="address">Address</label>
+          <input type="text" id="address" required placeholder="Enter your full address">
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" required></textarea>
+        </div>
+        <div class="button-group">
+          <button type="submit" class="btn-primary">Submit</button>
+          <button type="reset" class="btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Reservations List -->
+    <div id="bookingsList" class="section hidden">
+      <h2>My Reservations</h2>
+      <div id="bookingsContainer"></div>
+    </div>
+
+    <!-- Artisan Profile Modal -->
+    <div id="artisanModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="artisanProfile"></div>
+      </div>
+    </div>
+
+    <!-- Quick Booking Modal -->
+    <div id="bookingModal" class="modal">
+      <div class="modal-content">
+        <h3>Réserver ce service</h3>
+        <form id="quickBookingForm">
+          <input type="hidden" id="quickServiceId"><!-- Ajoute ceci entre le champ serviceId et bookingDate -->
+          <input type="hidden" id="artisanId">
+          
+          <div class="form-group">
+            <label for="quickDate">Date</label>
+            <input type="datetime-local" id="quickDate" required>
+          </div>
+          <div class="form-group">
+            <label for="quickDesc">Description</label>
+            <textarea id="quickDesc" rows="3" required></textarea>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="btn-primary">Confirmer</button>
+            <button type="button" class="btn-secondary" onclick="closeBookingModal()">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/bookingse.js"></script>
+</body>
+</html>

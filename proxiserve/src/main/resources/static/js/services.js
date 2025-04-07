@@ -104,8 +104,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             <span>${(service.rating || 0).toFixed(1)} ★</span>
           </div>
           <div class="service-contact">
-            <button class="contact-btn primary-btn" onclick="handleBooking('${service.id}')">Réserver</button>
-          <button class="contact-btn secondary-btn" onclick="window.location.href='/clientViewProfile?id=${service.artisanId}'">Voir Profil</button>
+           <button class="contact-btn primary-btn" onclick="handleBooking('${service.id}', '${service.artisanId}')">Réserver</button>
+
+          <button class="contact-btn secondary-btn" onclick="window.location.href='/clientViewProfile?id=${service.artisanId}','${service.artisanId}'">Voir Profil</button>
 
 
           </div>
@@ -135,17 +136,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     return Array.from({ length: 5 }, (_, i) => i < full ? "★" : "☆").join('');
   }
 
-  window.handleBooking = function (serviceId) {
-    const token = localStorage.getItem("jwtToken");
+  window.handleBooking = function (serviceId, artisanId) {
+    const token = localStorage.getItem("token");
     if (!token) {
       if (confirm("Vous devez être connecté pour réserver. Souhaitez-vous vous connecter ?")) {
         localStorage.setItem("pendingServiceId", serviceId);
+        localStorage.setItem("pendingArtisanId", artisanId);
         window.location.href = "/login";
       }
-    } else {
-      window.location.href = `/booking/confirm?serviceId=${serviceId}`;
+      return;
+    }
+  
+    try {
+      const payloadBase64 = token.split('.')[1];
+      const decodedPayload = JSON.parse(atob(payloadBase64));
+      const role = decodedPayload.role;
+  
+      if (role !== "ROLE_CLIENT") {
+        alert("Seuls les clients peuvent effectuer une réservation.");
+        return;
+      }
+  
+      window.location.href = `/bookings?serviceId=${serviceId}&artisanId=${artisanId}`;
+    } catch (err) {
+      console.error("Erreur lors de la lecture du token :", err);
+      alert("Token invalide. Veuillez vous reconnecter.");
+      localStorage.clear();
+      window.location.href = "/login";
     }
   };
+  
 
   // Rating
   ratingStars.forEach((star, i) => {

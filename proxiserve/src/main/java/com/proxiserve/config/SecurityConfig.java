@@ -53,6 +53,7 @@ public class SecurityConfig {
                             "/", "/index", "/login", "/signup", "/forgot-password", "dashboard.html", "dashboard/**",
                             "/request-reset-password", "/reset-password",
                             "/index-artisan", "/index-artisan.html",
+                            "/bookings", "/api/bookings/**", "/bookings.html",
                             "/services.html", "/services", "/services/**",
                             "/clientViewProfile", "/clientViewProfile.html", 
                             "/clientViewProfile.css",

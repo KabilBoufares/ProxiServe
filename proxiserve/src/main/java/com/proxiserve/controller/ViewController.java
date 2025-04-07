@@ -53,5 +53,10 @@ public class ViewController {
     public String showServicesPage() {
         return "services"; // correspond à services.html dans /templates
     }
+
+    @GetMapping("/bookings")
+    public String showBookingsPage() {
+        return "bookings"; // Va chercher templates/bookings.html
+    }
  
 }

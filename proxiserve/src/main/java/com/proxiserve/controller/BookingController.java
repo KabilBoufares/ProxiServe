@@ -205,6 +205,7 @@ public ResponseEntity<?> getBookingsForClient(
             service != null ? service.getDescription() : null,
             service != null ? service.getPrice() : 0.0,
             booking.getLocation(),
+           
             booking.getDescription() // 💡 Ne pas oublier la description si elle est utile côté client
         );
     }).toList();
