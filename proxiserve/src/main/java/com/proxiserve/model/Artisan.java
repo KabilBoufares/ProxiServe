@@ -11,9 +11,7 @@ import org.springframework.data.mongodb.core.index.GeoSpatialIndexType;
 import org.springframework.data.mongodb.core.index.GeoSpatialIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+
 import lombok.Data;
 
 /**
@@ -28,31 +26,25 @@ public class Artisan {
     private String id;
 
     /** Référence à l'utilisateur associé (User) */
-    @NotBlank(message = "L'ID utilisateur ne peut pas être vide")
     private String userId;
 
-    /*Email */
-    @NotBlank(message = "Le nom complet ne peut pas être vide")
+
     private String email;
 
-    /** Numéro de téléphone de l'artisan */
-    @NotBlank(message = "Le numéro de téléphone est requis")
+
     private String phoneNumber;
 
     private String profilePictureUrl;
     private String biography;
     private List<String> skills;
 
-    /** Profession de l'artisan */
-    @NotBlank(message = "La profession est requise")
+
     private String profession;
 
     /** Nom de l'entreprise (optionnel) */
     private String companyName;
 
-    /** Catégories de services proposés par l'artisan */
-    @NotNull(message = "Les catégories de service ne peuvent pas être nulles")
-    @Size(min = 1, message = "L'artisan doit proposer au moins un service")
+
     private List<String> serviceCategories;
 
 

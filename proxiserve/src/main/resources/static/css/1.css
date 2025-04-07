@@ -183,19 +183,25 @@ textarea:focus {
 }
 
 /* Skills */
+/* Grille de base pour les deux colonnes */
 .skills-container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
+    align-items: start;
+    margin-top: 1rem;
 }
 
+/* Conteneur de tags */
 .tags-container {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-bottom: 1rem;
+    min-height: 40px;
+    margin-top: 1rem;
 }
 
+/* Style de chaque tag */
 .tag {
     background-color: var(--secondary-color);
     color: var(--primary-color);
@@ -203,22 +209,57 @@ textarea:focus {
     border-radius: 2rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
     font-weight: 500;
+    gap: 0.5rem;
 }
 
+/* Bouton dans un tag */
 .tag button {
     background: none;
     border: none;
     color: var(--primary-color);
     cursor: pointer;
     opacity: 0.7;
+    font-size: 0.9rem;
     transition: opacity 0.3s ease;
 }
 
 .tag button:hover {
     opacity: 1;
 }
+
+/* Zone d'ajout de compétence */
+.add-skill {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+/* Responsive pour les petits écrans */
+@media (max-width: 600px) {
+    .skills-container {
+        grid-template-columns: 1fr;
+    }
+
+    .add-skill {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .add-skill input,
+    .add-skill button {
+        width: 100%;
+    }
+}
+
+/* Message quand liste de skills vide */
+#emptySkillsMessage {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
 
 /* Photos Grid */
 .photos-grid {
@@ -556,4 +597,69 @@ textarea:focus {
 
 .logout button:hover {
     background-color: #cc6a28;
+}
+
+/*certification*/
+.certification-card {
+    background-color: white;
+    border: 2px solid var(--border-color);
+    border-left: 6px solid var(--primary-color);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(13, 59, 102, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.certification-card:hover {
+    transform: translateY(-2px);
+}
+
+.certification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.certification-header h3 {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.certification-header .btn-danger {
+    background-color: var(--danger-color);
+    border: none;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.certification-header .btn-danger:hover {
+    background-color: #c53030;
+}
+
+.certification-card p {
+    margin-bottom: 0.3rem;
+    color: var(--text-color);
+}
+
+.certification-card .organization {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.certification-card .date {
+    font-style: italic;
+    color: var(--neutral-color);
+}
+
+.certification-card .description {
+    margin-top: 0.5rem;
 }

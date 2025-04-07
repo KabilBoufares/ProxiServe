@@ -1,4 +1,3 @@
-// Gestion du profil
 const profile = {
     data: null,
 
@@ -11,6 +10,10 @@ const profile = {
             profile.data = await api.getProfile(artisanId);
             profile.render();
             profile.setupEventListeners();
+
+            if (typeof certifications !== 'undefined') certifications.render();
+            if (typeof skills !== 'undefined') skills.render();
+            if (typeof photos !== 'undefined') photos.render();
         } catch (error) {
             utils.handleApiError(error);
         }
@@ -20,76 +23,87 @@ const profile = {
     render: () => {
         if (!profile.data) return;
 
-        // Mise à jour des champs du formulaire
-        document.getElementById('email').value = profile.data.email;
-        document.getElementById('phoneNumber').value = profile.data.phoneNumber;
-        document.getElementById('biography').value = profile.data.biography;
-        document.getElementById('profession').value = profile.data.profession;
-        document.getElementById('companyName').value = profile.data.companyName;
+        document.getElementById('email').value = profile.data.email || '';
+        document.getElementById('phoneNumber').value = profile.data.phoneNumber || '';
+        document.getElementById('biography').value = profile.data.biography || '';
+        document.getElementById('profession').value = profile.data.profession || '';
+        document.getElementById('companyName').value = profile.data.companyName || '';
+        document.getElementById('workingHoursWeekdays').value = profile.data.workingHoursWeekdays || '';
+        document.getElementById('workingHoursSaturday').value = profile.data.workingHoursSaturday || '';
+        document.getElementById('workingHoursSunday').value = profile.data.workingHoursSunday || '';
 
-        // Mise à jour de la photo de profil
         const profilePicture = document.getElementById('profilePicture');
         profilePicture.src = profile.data.profilePictureUrl || 'https://placehold.co/100x100';
 
-        // Mise à jour du nom dans la sidebar
-        document.getElementById('artisanName').textContent = profile.data.companyName;
+        document.getElementById('artisanName').textContent = profile.data.fullName || profile.data.companyName || 'Artisan';
     },
 
-    // Configuration des écouteurs d'événements
+    // Événements
     setupEventListeners: () => {
-        // Formulaire de profil
         const profileForm = document.getElementById('profileForm');
-        profileForm.addEventListener('submit', profile.handleProfileSubmit);
+        if (profileForm) profileForm.addEventListener('submit', profile.handleProfileSubmit);
 
-        // Upload de photo de profil
         const profilePictureInput = document.getElementById('profilePictureInput');
-        profilePictureInput.addEventListener('change', profile.handleProfilePictureUpload);
+        if (profilePictureInput) {
+            profilePictureInput.addEventListener('change', profile.handleProfilePictureUpload);
+        }
     },
 
-    // Gestion de la soumission du formulaire
+    // Soumission du profil
     handleProfileSubmit: async (event) => {
         event.preventDefault();
 
-        try {
-            const formData = {
-                phoneNumber: document.getElementById('phoneNumber').value,
-                biography: document.getElementById('biography').value,
-                profession: document.getElementById('profession').value,
-                companyName: document.getElementById('companyName').value
-            };
+        const fields = [
+            'phoneNumber',
+            'biography',
+            'profession',
+            'companyName',
+            'workingHoursWeekdays',
+            'workingHoursSaturday',
+            'workingHoursSunday'
+        ];
 
-            // Validation
-            const validation = utils.validateForm(formData, {
-                phoneNumber: { required: true, pattern: /^\d{8,}$/, message: 'Numéro invalide' },
-                biography: { required: true, minLength: 10 },
-                profession: { required: true },
-                companyName: { required: true }
+        const formData = {};
+        fields.forEach(field => {
+            const value = document.getElementById(field).value.trim();
+            if (value !== '') formData[field] = value;
+        });
+
+        if (Object.keys(formData).length === 0) {
+            utils.showNotification('Veuillez remplir au moins un champ avant de valider.', 'warning');
+            return;
+        }
+
+        const validation = utils.validateForm(formData, {
+            phoneNumber: { pattern: /^\d{8,}$/, message: 'Numéro invalide (au moins 8 chiffres)' },
+            biography: { minLength: 10 },
+            profession: {},
+            companyName: {}
+        });
+
+        if (!validation.isValid) {
+            Object.entries(validation.errors).forEach(([field, error]) => {
+                utils.showNotification(error, 'error');
             });
+            return;
+        }
 
-            if (!validation.isValid) {
-                Object.entries(validation.errors).forEach(([field, error]) => {
-                    utils.showNotification(error, 'error');
-                });
-                return;
-            }
-
+        try {
             const artisanId = localStorage.getItem('artisanId');
             await api.updateProfile(artisanId, formData);
-            
-            utils.showNotification('Profil mis à jour avec succès');
+
             profile.data = { ...profile.data, ...formData };
             profile.render();
+            utils.showNotification('Profil mis à jour avec succès');
         } catch (error) {
             utils.handleApiError(error);
         }
     },
 
-    // Gestion de l'upload de photo de profil
+    // Upload de la photo
     handleProfilePictureUpload: async (event) => {
         const file = event.target.files[0];
-        if (!file) return;
-
-        if (!utils.isValidImage(file)) return;
+        if (!file || !utils.isValidImage(file)) return;
 
         try {
             const photoUrl = await api.uploadProfilePicture(file);

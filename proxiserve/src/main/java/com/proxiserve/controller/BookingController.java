@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import com.proxiserve.dto.BookingView;
+import com.proxiserve.dto.BookingRequest;
+import com.proxiserve.dto.BookingArtisanView;
+import com.proxiserve.dto.BookingClientView;
 import com.proxiserve.model.Artisan;
 import com.proxiserve.model.Booking;
 import com.proxiserve.model.Client;
@@ -23,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -59,7 +61,7 @@ public class BookingController {
 
     //  Créer une réservation (par un client connecté)
     @PostMapping
-    public ResponseEntity<?> createBooking(@Valid @RequestBody Booking bookingRequest,
+    public ResponseEntity<?> createBooking(@Valid @RequestBody BookingRequest bookingRequest,
                                         @AuthenticationPrincipal UserDetails userDetails) {
         logger.info("[POST] /api/bookings called by {}", userDetails.getUsername());
 
@@ -84,115 +86,126 @@ public class BookingController {
             logger.warn("Service non trouvé avec l'ID : {}", bookingRequest.getServiceId());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Service non trouvé");
         }
+
+        Services service = serviceOpt.get();
+        String artisanId = service.getArtisanId();
+
         List<Booking> conflicts = bookingRepository.findByArtisanIdAndBookingDateAndStatus(
-            bookingRequest.getArtisanId(),
-            bookingRequest.getBookingDate(),
-            "CONFIRMED"
+                artisanId,
+                bookingRequest.getBookingDate(),
+                "CONFIRMED"
         );
-    
+
         if (!conflicts.isEmpty()) {
-            logger.warn("Conflit de réservation détecté pour artisan {} à la date {}", bookingRequest.getArtisanId(), bookingRequest.getBookingDate());
+            logger.warn("Conflit de réservation détecté pour artisan {} à la date {}", artisanId, bookingRequest.getBookingDate());
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                                 .body("Cet artisan est déjà réservé à cette date.");
+                                .body("Cet artisan est déjà réservé à cette date.");
         }
 
-        bookingRequest.setClientId(clientOpt.get().getId());
-        bookingRequest.setCreatedAt(LocalDateTime.now());
-        bookingRequest.setStatus("PENDING");
+        // Construction du nouvel objet Booking
+        Booking booking = new Booking();
+        booking.setClientId(clientOpt.get().getId());
+        booking.setArtisanId(artisanId);
+        booking.setServiceId(service.getId());
+        booking.setBookingDate(bookingRequest.getBookingDate());
+        booking.setCreatedAt(LocalDateTime.now());
+        booking.setStatus("PENDING");
 
-        // Récupérer les infos de l'artisan concerné
-        Optional<Artisan> artisanOpt = artisanRepository.findById(bookingRequest.getArtisanId());
-        artisanOpt.ifPresent(artisan -> {
+        // 🔍 Position GPS si elle est fournie (≠ 0.0)
+        if (bookingRequest.getLatitude() != 0.0 && bookingRequest.getLongitude() != 0.0) {
+            booking.setLocation(new GeoJsonPoint(bookingRequest.getLongitude(), bookingRequest.getLatitude()));
+        }
+
+        // 🔍 Description du besoin
+        if (bookingRequest.getDescription() != null && !bookingRequest.getDescription().isBlank()) {
+            booking.setDescription(bookingRequest.getDescription());
+        }
+
+        // Envoi de mail à l'artisan
+        artisanRepository.findById(artisanId).ifPresent(artisan -> {
             String artisanEmail = artisan.getEmail();
             String message = String.format("""
                     Bonjour %s,
 
-                    Vous avez reçu une nouvelle réservation de la part d'un client.
+                    Vous avez reçu une nouvelle réservation.
 
                     📅 Date : %s
                     🛠️ Service : %s
-                    
+                    📝 Description : %s
 
-                    Connectez-vous à votre compte pour confirmer ou rejeter cette réservation.
+                    Connectez-vous à votre compte pour confirmer ou rejeter cette demande.
 
                     -- 
                     L'équipe Proxiserve
                     """,
                     artisan.getProfession(),
-                    bookingRequest.getBookingDate(),
-                    bookingRequest.getServiceId()
-                    
+                    booking.getBookingDate(),
+                    service.getTitle(),
+                    booking.getDescription() != null ? booking.getDescription() : "(aucune)"
             );
 
-            mailService.sendEmail(
-                    artisanEmail,
-                    "📢 Nouvelle réservation reçue !",
-                    message
-            );
+            mailService.sendEmail(artisanEmail, "📢 Nouvelle réservation reçue !", message);
         });
 
-
-
-        Booking saved = bookingRepository.save(bookingRequest);
+        Booking saved = bookingRepository.save(booking);
         logger.info("Réservation créée avec ID : {}", saved.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
 
-    //  Récupérer les réservations du client connecté
-    @GetMapping("/client")
-    public ResponseEntity<?> getBookingsForClient(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) String status) {
+   //  Récupérer les réservations du client connecté
+@GetMapping("/client")
+public ResponseEntity<?> getBookingsForClient(
+        @AuthenticationPrincipal UserDetails userDetails,
+        @RequestParam(required = false) String status) {
 
-        logger.info("[GET] /api/bookings/client called by {}", userDetails.getUsername());
+    logger.info("[GET] /api/bookings/client called by {}", userDetails.getUsername());
 
-        Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
-        }
-
-        Optional<Client> clientOpt = clientRepository.findByUserId(userOpt.get().getId());
-        if (clientOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client non trouvé");
-        }
-
-        String clientId = clientOpt.get().getId();
-
-        //  Appliquer un filtre par statut si fourni
-        List<Booking> bookings = (status != null && !status.isBlank())
-                ? bookingRepository.findByClientIdAndStatus(clientId, status.toUpperCase())
-                : bookingRepository.findByClientId(clientId);
-
-        List<BookingView> result = bookings.stream().map(booking -> {
-            Services service = serviceRepository.findById(booking.getServiceId()).orElse(null);
-
-            return new BookingView(
-                booking.getId(),
-                booking.getStatus(),
-                booking.getBookingDate(),
-                booking.getCreatedAt(),
-                clientOpt.get().getFullName(),       // On a le client en cache
-                clientOpt.get().getEmail(),
-                service != null ? service.getTitle() : null,
-                service != null ? service.getDescription() : null,
-                service != null ? service.getPrice() : 0.0
-            );
-        }).toList();
-
-        return ResponseEntity.ok(result);
+    Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
+    if (userOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
     }
+
+    Optional<Client> clientOpt = clientRepository.findByUserId(userOpt.get().getId());
+    if (clientOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client non trouvé");
+    }
+
+    String clientId = clientOpt.get().getId();
+
+    // Appliquer un filtre par statut si fourni
+    List<Booking> bookings = (status != null && !status.isBlank())
+            ? bookingRepository.findByClientIdAndStatus(clientId, status.toUpperCase())
+            : bookingRepository.findByClientId(clientId);
+
+    List<BookingClientView> result = bookings.stream().map(booking -> {
+        Services service = serviceRepository.findById(booking.getServiceId()).orElse(null);
+
+        return new BookingClientView(
+            booking.getId(),
+            booking.getStatus(),
+            booking.getBookingDate(),
+            booking.getCreatedAt(),
+            service != null ? service.getTitle() : null,
+            service != null ? service.getDescription() : null,
+            service != null ? service.getPrice() : 0.0,
+            booking.getLocation(),
+            booking.getDescription() // 💡 Ne pas oublier la description si elle est utile côté client
+        );
+    }).toList();
+
+    return ResponseEntity.ok(result);
+}
 
 
    
 
-    //  Récupérer les réservations des services de l'artisan connecté
-    @GetMapping("/artisan")
+   //  Récupérer les réservations des services de l'artisan connecté
+   @GetMapping("/artisan")
     public ResponseEntity<?> getBookingsForArtisan(@AuthenticationPrincipal UserDetails userDetails) {
         logger.info("[GET] /api/bookings/artisan called by {}", userDetails.getUsername());
 
-        String email = userDetails.getUsername();
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
         if (userOpt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Utilisateur non trouvé");
         }
@@ -202,48 +215,38 @@ public class BookingController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Artisan non trouvé");
         }
 
-        String artisanId = artisanOpt.get().getId(); //  le vrai ID de l'artisan
-
+        String artisanId = artisanOpt.get().getId();
         List<Services> services = serviceRepository.findByArtisanId(artisanId);
         if (services.isEmpty()) {
             logger.info("Aucun service trouvé pour l'artisan {}", artisanId);
-            return ResponseEntity.ok(List.of()); // liste vide mais sans erreur
+            return ResponseEntity.ok(List.of());
         }
 
-        List<String> serviceIds = services.stream()
-                                        .map(Services::getId)
-                                        .toList();
-
+        List<String> serviceIds = services.stream().map(Services::getId).toList();
         List<Booking> bookings = bookingRepository.findByServiceIdIn(serviceIds);
-        
 
-        List<BookingView> result = bookings.stream().map(booking -> {
-            String clientId = booking.getClientId();
-            String serviceId = booking.getServiceId();
+        List<BookingArtisanView> result = bookings.stream().map(booking -> {
+            Client client = clientRepository.findById(booking.getClientId()).orElse(null);
+            User clientUser = (client != null) ? userRepository.findById(client.getUserId()).orElse(null) : null;
+            Services service = serviceRepository.findById(booking.getServiceId()).orElse(null);
 
-            // Récupérer le client
-            var client = clientRepository.findById(clientId).orElse(null);
-            // Récupérer le service
-            var service = serviceRepository.findById(serviceId).orElse(null);
-
-            return new BookingView(
+            return new BookingArtisanView(
                 booking.getId(),
                 booking.getStatus(),
                 booking.getBookingDate(),
                 booking.getCreatedAt(),
-                client != null  ? client.getFullName() : null,
-                client != null ? client.getEmail() : null,
+                client != null ? client.getFullName() : null,
+                clientUser != null ? clientUser.getEmail() : null, // ✅ mail depuis User
+                client != null ? client.getPhoneNumber() : null,
                 service != null ? service.getTitle() : null,
                 service != null ? service.getDescription() : null,
-                service != null ? service.getPrice() : 0.0
+                booking.getLocation()
             );
         }).toList();
 
         return ResponseEntity.ok(result);
-
     }
-
-
+    //annuler une réservation (par un client connecté)
     @DeleteMapping("/{id}")
     public ResponseEntity<?> cancelBooking(@PathVariable String id,
                                         @AuthenticationPrincipal UserDetails userDetails) {
@@ -283,6 +286,7 @@ public class BookingController {
                 Bonjour %s,
         
                 Le client a annulé la réservation prévue pour le %s.
+                📝 Description : %s
         
                 Vous êtes maintenant disponible à ce créneau.
         
@@ -290,7 +294,8 @@ public class BookingController {
                 L'équipe Proxiserve
                 """,
                 artisan.getProfession(),
-                booking.getBookingDate()
+                booking.getBookingDate(),
+                booking.getDescription() != null ? booking.getDescription() : "Non spécifiée"
             );
         
             mailService.sendEmail(artisan.getEmail(), subject, body);
@@ -324,13 +329,12 @@ public class BookingController {
 
         return ResponseEntity.ok("Réservation annulée avec succès");
     }
-
+ 
     //  Confirmer une réservation (par un artisan connecté)
     @PutMapping("/{id}/confirm")
     public ResponseEntity<?> confirmBooking(@PathVariable String id,
                                             @AuthenticationPrincipal UserDetails userDetails) {
         logger.info("[PUT] /api/bookings/{}/confirm demandé par {}", id, userDetails.getUsername());
-        System.out.println("[DEBUG] Tentative de confirmation de réservation par : " + userDetails.getUsername());
 
         Optional<User> userOpt = userRepository.findByEmail(userDetails.getUsername());
         if (userOpt.isEmpty()) {
@@ -349,41 +353,46 @@ public class BookingController {
 
         Booking booking = bookingOpt.get();
 
-        // Vérifie que la réservation concerne un service appartenant à l'artisan connecté
+        // Vérifie que l'artisan connecté est bien concerné par cette réservation
         Optional<Services> serviceOpt = serviceRepository.findById(booking.getServiceId());
         if (serviceOpt.isEmpty() || !serviceOpt.get().getArtisanId().equals(artisanOpt.get().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Action non autorisée");
         }
 
+        // Mise à jour du statut
         booking.setStatus("CONFIRMED");
-
-        // Notification au client
-        clientRepository.findById(booking.getClientId()).ifPresent(client -> {
-            String subject = "✅ Votre réservation a été confirmée !";
-            String body = String.format("""
-                Bonjour %s,
-
-                L'artisan %s a confirmé votre réservation prévue pour le %s.
-
-                Merci pour votre confiance.
-
-                --
-                L'équipe Proxiserve
-                """,
-                client.getFullName(),
-                artisanOpt.get().getProfession(),
-                booking.getBookingDate()
-            );
-
-            mailService.sendEmail(client.getEmail(), subject, body);
-        });
-        
         bookingRepository.save(booking);
+        logger.info("Réservation {} confirmée par artisan {}", id, artisanOpt.get().getId());
 
-        logger.info("Réservation {} confirmée par l'artisan {}", id, artisanOpt.get().getId());
+        // 🔔 Notification au client
+        clientRepository.findById(booking.getClientId()).ifPresent(client -> {
+            userRepository.findById(client.getUserId()).ifPresent(user -> {
+                String subject = "✅ Votre réservation a été confirmée !";
+                String body = String.format("""
+                    Bonjour %s,
+
+                    L'artisan %s a confirmé votre réservation prévue pour le %s.
+
+                    📝 Description : %s
+
+                    Merci pour votre confiance.
+
+                    --
+                    L'équipe Proxiserve
+                    """,
+                    client.getFullName(),
+                    artisanOpt.get().getProfession(),
+                    booking.getBookingDate(),
+                    booking.getDescription() != null ? booking.getDescription() : "Non spécifiée"
+                );
+
+                mailService.sendEmail(user.getEmail(), subject, body);
+            });
+        });
 
         return ResponseEntity.ok("Réservation confirmée avec succès");
     }
+
 
     //  Refuser une réservation (par un artisan connecté)
     @PutMapping("/{id}/reject")

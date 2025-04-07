@@ -32,7 +32,9 @@ const photos = {
     setupEventListeners: () => {
         // Upload de photos
         const workPhotoInput = document.getElementById('workPhotoInput');
-        workPhotoInput.addEventListener('change', photos.handlePhotoUpload);
+        if (workPhotoInput) {
+            workPhotoInput.addEventListener('change', photos.handlePhotoUpload);
+        }
 
         // Suppression de photos
         document.getElementById('photosGrid').addEventListener('click', (e) => {
@@ -45,42 +47,49 @@ const photos = {
 
         // Drag & drop
         const uploadZone = document.querySelector('.upload-zone');
-        
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('dragover');
-        });
-
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('dragover');
-        });
-
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('dragover');
-            
-            const files = Array.from(e.dataTransfer.files);
-            files.forEach(file => {
-                if (utils.isValidImage(file)) {
-                    photos.uploadPhoto(file);
-                }
+        if (uploadZone) {
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
             });
-        });
+
+            uploadZone.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+
+                const files = Array.from(e.dataTransfer.files);
+                files.forEach(file => {
+                    if (utils.isValidImage(file)) {
+                        photos.uploadPhoto(file);
+                    }
+                });
+            });
+        }
     },
 
     // Upload d'une photo
     uploadPhoto: async (file) => {
         try {
             const photoUrl = await api.uploadWorkPhoto(file);
+    
+            // Met à jour directement les données
+            if (!profile.data.workPhotoUrls) {
+                profile.data.workPhotoUrls = [];
+            }
             profile.data.workPhotoUrls.push(photoUrl);
+    
             photos.render();
-            utils.showNotification('Photo ajoutée');
+            utils.showNotification('Photo ajoutée avec succès');
         } catch (error) {
             utils.handleApiError(error);
         }
-    },
+    },    
 
-    // Gestion de l'upload de photos
+    // Gestion de l'upload depuis <input type="file">
     handlePhotoUpload: (event) => {
         const files = Array.from(event.target.files);
         files.forEach(file => {
@@ -88,7 +97,7 @@ const photos = {
                 photos.uploadPhoto(file);
             }
         });
-        event.target.value = ''; // Reset input
+        event.target.value = ''; // reset
     },
 
     // Suppression d'une photo
@@ -98,12 +107,10 @@ const photos = {
         try {
             const artisanId = localStorage.getItem('artisanId');
             await api.deleteWorkPhoto(artisanId, photoUrl);
-            
-            profile.data.workPhotoUrls = profile.data.workPhotoUrls
-                .filter(url => url !== photoUrl);
-            
+
+            profile.data = await api.getProfile(artisanId); // ✅ Re-fetch après suppression
             photos.render();
-            utils.showNotification('Photo supprimée');
+            utils.showNotification('Photo supprimée avec succès');
         } catch (error) {
             utils.handleApiError(error);
         }

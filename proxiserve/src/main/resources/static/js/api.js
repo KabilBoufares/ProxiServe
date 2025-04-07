@@ -58,11 +58,10 @@ const api = {
         try {
             const formData = new FormData();
             formData.append('file', file);
+            const token = getToken();
             const response = await fetch(`${API_URL}/artisans/profile-picture`, {
                 method: 'POST',
-                headers: {
-                    // Pas de Content-Type pour FormData
-                },
+                headers: token ? { 'Authorization': 'Bearer ' + token } : {},
                 body: formData
             });
             if (!response.ok) throw new Error('Erreur lors de l\'upload de la photo de profil');
@@ -71,25 +70,29 @@ const api = {
             handleError(error);
         }
     },
-
+    
     uploadWorkPhoto: async (file) => {
         try {
             const formData = new FormData();
             formData.append('file', file);
+    
+            const token = getToken(); // récupère le JWT
+    
             const response = await fetch(`${API_URL}/artisans/work-photo`, {
                 method: 'POST',
-                headers: {
-                    // Pas de Content-Type pour FormData
-                },
+                headers: token ? { 'Authorization': 'Bearer ' + token } : {},
                 body: formData
             });
+    
             if (!response.ok) throw new Error('Erreur lors de l\'upload de la photo');
-            return await response.text();
+    
+            const result = await response.json(); // le backend retourne { "url": "..." }
+            return result.url;
         } catch (error) {
             handleError(error);
         }
-    },
-
+    },    
+    
     deleteWorkPhoto: async (id, photoUrl) => {
         try {
             const response = await fetch(`${API_URL}/artisans/${id}/photos?photoUrl=${encodeURIComponent(photoUrl)}`, {
@@ -102,6 +105,9 @@ const api = {
             handleError(error);
         }
     },
+
+
+    // Compétences
 
     deleteSkill: async (id, skill) => {
         try {

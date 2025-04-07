@@ -15,6 +15,7 @@ import com.proxiserve.model.User; // Import the User class
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.slf4j.Logger;
@@ -22,7 +23,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -115,20 +119,18 @@ public ResponseEntity<ArtisanProfileView> getArtisanProfile(@PathVariable String
 
     Artisan artisan = artisanOpt.get();
     List<Certification> certifications = certificationRepository.findByArtisanId(id);
-
-    // 🔁 Récupérer le fullName depuis User
     Optional<User> userOpt = userRepository.findById(artisan.getUserId());
     String fullName = userOpt.map(User::getFullName).orElse("Artisan inconnu");
 
     ArtisanProfileView profile = new ArtisanProfileView();
     profile.setId(artisan.getId());
+    profile.setFullName(fullName);
     profile.setEmail(artisan.getEmail());
     profile.setPhoneNumber(artisan.getPhoneNumber());
-    profile.setFullName(fullName); // ✅ injecté depuis User
     profile.setProfession(artisan.getProfession());
     profile.setCompanyName(artisan.getCompanyName());
-    profile.setProfilePictureUrl(artisan.getProfilePictureUrl());
     profile.setBiography(artisan.getBiography());
+    profile.setProfilePictureUrl(artisan.getProfilePictureUrl());
     profile.setSkills(artisan.getSkills());
     profile.setServiceCategories(artisan.getServiceCategories());
     profile.setWorkingHoursWeekdays(artisan.getWorkingHoursWeekdays());
@@ -141,36 +143,38 @@ public ResponseEntity<ArtisanProfileView> getArtisanProfile(@PathVariable String
 }
 
 
-    @PutMapping("/{id}/profile")
-    @PreAuthorize("hasAuthority('ROLE_ARTISAN')") // ou check plus fin avec userId
-    public ResponseEntity<?> updateProfile(@PathVariable String id, @RequestBody Artisan updatedData) {
-        Optional<Artisan> artisanOpt = artisanRepository.findById(id);
-        if (artisanOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    
+    
 
-        Artisan artisan = artisanOpt.get();
 
-        
-        artisan.setPhoneNumber(updatedData.getPhoneNumber());
-        artisan.setProfilePictureUrl(updatedData.getProfilePictureUrl());
-        artisan.setBiography(updatedData.getBiography());
-        artisan.setSkills(updatedData.getSkills());
-        artisan.setProfession(updatedData.getProfession());
-        artisan.setCompanyName(updatedData.getCompanyName());
-        artisan.setServiceCategories(updatedData.getServiceCategories());
-        artisan.setWorkingHoursWeekdays(updatedData.getWorkingHoursWeekdays());
-        artisan.setWorkingHoursSaturday(updatedData.getWorkingHoursSaturday());
-        artisan.setWorkingHoursSunday(updatedData.getWorkingHoursSunday());
-        artisan.setWorkPhotoUrls(updatedData.getWorkPhotoUrls());
-
-        if (updatedData.getLocation() != null) {
-            artisan.setLocation(updatedData.getLocation());
-        }
-
-        artisanRepository.save(artisan);
-        return ResponseEntity.ok("Profil mis à jour avec succès.");
+@PutMapping("/{id}/profile")
+@PreAuthorize("hasAuthority('ROLE_ARTISAN')")
+public ResponseEntity<?> updateProfile(@PathVariable String id, @RequestBody Artisan updatedData) {
+    Optional<Artisan> artisanOpt = artisanRepository.findById(id);
+    if (artisanOpt.isEmpty()) {
+        return ResponseEntity.notFound().build();
     }
+
+    Artisan artisan = artisanOpt.get();
+
+    // ✅ Mise à jour conditionnelle (champ par champ)
+    if (updatedData.getPhoneNumber() != null) artisan.setPhoneNumber(updatedData.getPhoneNumber());
+    if (updatedData.getProfilePictureUrl() != null) artisan.setProfilePictureUrl(updatedData.getProfilePictureUrl());
+    if (updatedData.getBiography() != null) artisan.setBiography(updatedData.getBiography());
+    if (updatedData.getSkills() != null) artisan.setSkills(updatedData.getSkills());
+    if (updatedData.getProfession() != null) artisan.setProfession(updatedData.getProfession());
+    if (updatedData.getCompanyName() != null) artisan.setCompanyName(updatedData.getCompanyName());
+    if (updatedData.getServiceCategories() != null) artisan.setServiceCategories(updatedData.getServiceCategories());
+    if (updatedData.getWorkingHoursWeekdays() != null) artisan.setWorkingHoursWeekdays(updatedData.getWorkingHoursWeekdays());
+    if (updatedData.getWorkingHoursSaturday() != null) artisan.setWorkingHoursSaturday(updatedData.getWorkingHoursSaturday());
+    if (updatedData.getWorkingHoursSunday() != null) artisan.setWorkingHoursSunday(updatedData.getWorkingHoursSunday());
+    if (updatedData.getWorkPhotoUrls() != null) artisan.setWorkPhotoUrls(updatedData.getWorkPhotoUrls());
+    if (updatedData.getLocation() != null) artisan.setLocation(updatedData.getLocation());
+
+    artisanRepository.save(artisan);
+    return ResponseEntity.ok("✅ Profil mis à jour partiellement.");
+}
+
 
 
     @DeleteMapping("/{id}/photos")
@@ -191,6 +195,22 @@ public ResponseEntity<ArtisanProfileView> getArtisanProfile(@PathVariable String
             return ResponseEntity.badRequest().body("Photo introuvable.");
         }
     }
+
+    @PutMapping("/{id}/skills")
+    @PreAuthorize("hasAuthority('ROLE_ARTISAN')")
+    public ResponseEntity<?> addSkill(@PathVariable String id, @RequestParam String skill) {
+        Optional<Artisan> artisanOpt = artisanRepository.findById(id);
+        if (artisanOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        Artisan artisan = artisanOpt.get();
+        List<String> skills = artisan.getSkills() != null ? artisan.getSkills() : new ArrayList<>();
+        if (!skills.contains(skill)) skills.add(skill);
+        artisan.setSkills(skills);
+        artisanRepository.save(artisan);
+
+        return ResponseEntity.ok(artisan);
+    }
+
 
 
     @DeleteMapping("/{id}/skills")
@@ -237,7 +257,7 @@ public ResponseEntity<ArtisanProfileView> getArtisanProfile(@PathVariable String
         }
     }
 
-    @PostMapping("/work-photo")
+   @PostMapping("/work-photo")
     @PreAuthorize("hasAuthority('ROLE_ARTISAN')")
     public ResponseEntity<?> uploadWorkPhoto(@RequestParam("file") MultipartFile file, Principal principal) {
         String email = principal.getName();
@@ -252,15 +272,28 @@ public ResponseEntity<ArtisanProfileView> getArtisanProfile(@PathVariable String
         Artisan artisan = artisanOpt.get();
         try {
             String imageUrl = imageUploadService.uploadImage(file);
+
+            // Initialiser la liste s'il le faut
+            if (artisan.getWorkPhotoUrls() == null) {
+                artisan.setWorkPhotoUrls(new ArrayList<>());
+            }
+
             artisan.getWorkPhotoUrls().add(imageUrl);
             artisanRepository.save(artisan);
+
             logger.info("[SUCCÈS] - Nouvelle photo de travail ajoutée pour l'artisan {}", artisan.getId());
-            return ResponseEntity.ok(imageUrl);
+
+            // Retourner un objet JSON (plus propre que String seul)
+            Map<String, String> response = new HashMap<>();
+            response.put("url", imageUrl);
+            return ResponseEntity.ok(response);
+
         } catch (IOException e) {
             logger.error("[ERREUR] - Upload échoué pour l'artisan {} : {}", artisan.getId(), e.getMessage());
             return ResponseEntity.internalServerError().body("Erreur lors de l’upload.");
         }
     }
+
 
 
 }

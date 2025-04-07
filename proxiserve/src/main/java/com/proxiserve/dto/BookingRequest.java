@@ -13,4 +13,9 @@ public class BookingRequest {
 
     @NotNull
     private LocalDateTime bookingDate;
+
+    private double latitude;         // Latitude GPS (optionnel si 0.0)
+    private double longitude;        // Longitude GPS (optionnel si 0.0)
+
+    private String description;      // Description des besoins du client (optionnelle)
 }
